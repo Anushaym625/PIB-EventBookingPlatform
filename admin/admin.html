@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+     <link rel="stylesheet" href="admin.css">
+     <script src="https://unpkg.com/cloudinary-core@2.11.4/cloudinary-core-shrinkwrap.min.js"></script>
+
+</head>
+<body>
+    <!-- LOGIN SECTION -->
+    <div id="login-section">
+        <!-- Super Admin Login Page -->
+        <div id="super-admin-login-page" class="login-page">
+            <div class="min-h-screen flex items-center justify-center">
+                <div class="w-full max-w-md p-8 space-y-6 card rounded-xl text-center">
+                    <div class="inline-block"><i data-lucide="shield" class="mx-auto w-12 h-12 icon-color"></i></div>
+                    <h2 class="text-2xl font-bold text-header">Super Admin Login</h2>
+                    <p class="text-sm text-subheader">Access the main control panel.</p>
+                    <form id="admin-login-form" class="space-y-6 text-left">
+                        <div>
+                            <label for="admin-username" class="text-sm font-medium text-subheader">Username</label>
+                            <input id="admin-username" name="username" type="text" required class="mt-1 form-input">
+                        </div>
+                        <div>
+                            <label for="admin-password" class="text-sm font-medium text-subheader">Password</label>
+                            <input id="admin-password" name="password" type="password" required class="mt-1 form-input">
+                        </div>
+                        <p id="admin-login-error" class="text-sm h-4" style="color: var(--color-accent);"></p>
+                        <button type="submit" class="btn btn-primary flex justify-center">Sign in</button>
+                    </form>
+                    <button id="show-organizer-login-btn" class="link-style text-sm">Are you an Organizer? Login here</button>
+                </div>
+            </div>
+        </div>
+        <!-- Organizer Login Page -->
+        <div id="organizer-login-page" class="login-page">
+            <div class="min-h-screen flex items-center justify-center">
+                <div class="w-full max-w-md p-8 space-y-6 card rounded-xl text-center">
+                    <div class="inline-block"><i data-lucide="log-in" class="mx-auto w-12 h-12 icon-color"></i></div>
+                    <h2 class="text-2xl font-bold text-header">Partner Login</h2>
+                    <p class="text-sm text-subheader">Manage your events and venues.</p>
+                    <form id="organizer-login-form" class="space-y-6 text-left">
+                        <div><label for="organizer-username" class="text-sm font-medium text-subheader">Username</label><input id="organizer-username" name="username" type="text" required class="mt-1 form-input"></div>
+                        <div><label for="organizer-password" class="text-sm font-medium text-subheader">Password</label><input id="organizer-password" name="password" type="password" required class="mt-1 form-input"></div>
+                        <p id="organizer-login-error" class="text-sm h-4" style="color: var(--color-accent);"></p>
+                        <button type="submit" class="btn btn-primary flex justify-center">Sign in</button>
+                    </form>
+                    <button id="show-admin-login-btn" class="link-style text-sm">Are you a Super Admin? Login here</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ADMIN CONTAINER -->
+    <div id="admin-container" class="hidden">
+        <header class="sticky top-0 z-10">
+            <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+                <h1 id="admin-header-title" class="text-2xl font-bold text-header">Dashboard</h1>
+                <button id="logout-button" class="flex items-center text-sm font-medium btn btn-primary w-auto py-2"><i data-lucide="log-out" class="w-4 h-4 mr-2"></i><span>Logout</span></button>
+            </div>
+        </header>
+
+        <!-- PAGE 1: Admin Hub -->
+        <main id="admin-hub-page" class="admin-page-section py-10">
+            <div class="max-w-5xl mx-auto sm:px-6 lg:px-8"><div id="dashboard-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <button data-target="manage-events-page" class="admin-nav-button group card p-6 rounded-xl text-left hover:bg-gray-800 transition-colors"><div class="icon-bg p-3 rounded-full w-max mb-4"><i data-lucide="calendar-plus" class="w-7 h-7 icon-color"></i></div><h3 class="text-lg font-semibold text-header">Manage Events</h3><p class="text-sm text-subheader">Add or edit event listings.</p></button>
+                <button data-target="manage-venues-page" class="admin-nav-button group card p-6 rounded-xl text-left hover:bg-gray-800 transition-colors"><div class="icon-bg p-3 rounded-full w-max mb-4"><i data-lucide="map-pin" class="w-7 h-7 icon-color"></i></div><h3 class="text-lg font-semibold text-header">Manage Venues</h3><p class="text-sm text-subheader">Add or edit venue details.</p></button>
+                <button data-target="manage-gallery-page" class="admin-nav-button group card p-6 rounded-xl text-left hover:bg-gray-800 transition-colors"><div class="icon-bg p-3 rounded-full w-max mb-4"><i data-lucide="image" class="w-7 h-7 icon-color"></i></div><h3 class="text-lg font-semibold text-header">Manage Gallery</h3><p class="text-sm text-subheader">Event photo galleries.</p></button>
+                <button data-target="manage-highlights-page" class="admin-nav-button group card p-6 rounded-xl text-left hover:bg-gray-800 transition-colors"><div class="icon-bg p-3 rounded-full w-max mb-4"><i data-lucide="clapperboard" class="w-7 h-7 icon-color"></i></div><h3 class="text-lg font-semibold text-header">Manage Highlights</h3><p class="text-sm text-subheader">Past event reels & stories.</p></button>
+                <button data-target="manage-categories-page" class="super-admin-only admin-nav-button group card p-6 rounded-xl text-left hover:bg-gray-800 transition-colors"><div class="icon-bg p-3 rounded-full w-max mb-4"><i data-lucide="layout-grid" class="w-7 h-7 icon-color"></i></div><h3 class="text-lg font-semibold text-header">Manage Categories</h3><p class="text-sm text-subheader">Control event category filters.</p></button>
+                <button data-target="manage-promos-page" class="super-admin-only admin-nav-button group card p-6 rounded-xl text-left hover:bg-gray-800 transition-colors"><div class="icon-bg p-3 rounded-full w-max mb-4"><i data-lucide="trending-up" class="w-7 h-7 icon-color"></i></div><h3 class="text-lg font-semibold text-header">Manage Promos</h3><p class="text-sm text-subheader">Update trending/promo cards.</p></button>
+                <button data-target="manage-partners-page" class="super-admin-only admin-nav-button group card p-6 rounded-xl text-left hover:bg-gray-800 transition-colors"><div class="icon-bg p-3 rounded-full w-max mb-4"><i data-lucide="handshake" class="w-7 h-7 icon-color"></i></div><h3 class="text-lg font-semibold text-header">Manage Partners</h3><p class="text-sm text-subheader">Add or edit partner logos.</p></button>
+                <button data-target="manage-organizers-page" class="super-admin-only admin-nav-button group card p-6 rounded-xl text-left hover:bg-gray-800 transition-colors"><div class="icon-bg p-3 rounded-full w-max mb-4"><i data-lucide="users" class="w-7 h-7 icon-color"></i></div><h3 class="text-lg font-semibold text-header">Manage Organizers</h3><p class="text-sm text-subheader">Add or edit organizer accounts.</p></button>
+            </div></div>
+        </main>
+        
+        <!-- Main Pages (Events, Venues, etc.) -->
+        <main id="manage-events-page" class="admin-page-section py-10"><div class="max-w-7xl mx-auto sm:px-6 lg:px-8"><button class="back-to-hub-btn mb-6 flex items-center text-sm link-style"><i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>Back to Dashboard</button><div class="lg:grid lg:grid-cols-3 lg:gap-8"><div class="lg:col-span-1 mb-6 lg:mb-0"><div class="card p-6 rounded-xl"><h3 class="text-xl font-semibold mb-6 text-header">Add New Event</h3><button id="add-new-event-btn" class="btn btn-primary">Add Event</button></div></div><div class="lg:col-span-2"><div class="card p-6 rounded-xl"><h3 class="text-xl font-semibold mb-4 text-header">Existing Events</h3><div id="admin-event-list" class="space-y-4"></div></div></div></div></div></main>
+        <main id="manage-venues-page" class="admin-page-section py-10"><div class="max-w-7xl mx-auto sm:px-6 lg:px-8"><button class="back-to-hub-btn mb-6 flex items-center text-sm link-style"><i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>Back to Dashboard</button><div class="lg:grid lg:grid-cols-3 lg:gap-8"><div class="lg:col-span-1 mb-6 lg:mb-0"><div class="card p-6 rounded-xl"><h3 class="text-xl font-semibold mb-6 text-header">Add New Venue</h3><button id="add-new-venue-btn" class="btn btn-primary">Add Venue</button></div></div><div class="lg:col-span-2"><div class="card p-6 rounded-xl"><h3 class="text-xl font-semibold mb-4 text-header">Existing Venues</h3><div id="admin-venue-list" class="space-y-4"></div></div></div></div></div></main>
+        <main id="manage-categories-page" class="admin-page-section py-10"><div class="max-w-7xl mx-auto sm:px-6 lg:px-8"><button class="back-to-hub-btn mb-6 flex items-center text-sm link-style"><i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>Back to Dashboard</button><div class="lg:grid lg:grid-cols-3 lg:gap-8"><div class="lg:col-span-1 mb-6 lg:mb-0"><div class="card p-6 rounded-xl"><h3 class="text-xl font-semibold mb-6 text-header">Add New Category</h3><button id="add-new-category-btn" class="btn btn-primary">Add Category</button></div></div><div class="lg:col-span-2"><div class="card p-6 rounded-xl"><h3 class="text-xl font-semibold mb-4 text-header">Existing Categories</h3><div id="admin-category-list" class="space-y-4"></div></div></div></div></div></main>
+        <main id="manage-promos-page" class="admin-page-section py-10"><div class="max-w-7xl mx-auto sm:px-6 lg:px-8"><button class="back-to-hub-btn mb-6 flex items-center text-sm link-style"><i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>Back to Dashboard</button><div class="lg:grid lg:grid-cols-3 lg:gap-8"><div class="lg:col-span-1 mb-6 lg:mb-0"><div class="card p-6 rounded-xl"><h3 class="text-xl font-semibold mb-6 text-header">Add New Promo</h3><button id="add-new-promo-btn" class="btn btn-primary">Add Promo</button></div></div><div class="lg:col-span-2"><div class="card p-6 rounded-xl"><h3 class="text-xl font-semibold mb-4 text-header">Existing Promos</h3><div id="admin-promo-list" class="space-y-4"></div></div></div></div></div></main>
+        <main id="manage-gallery-page" class="admin-page-section py-10"><div class="max-w-7xl mx-auto sm:px-6 lg:px-8"><button class="back-to-hub-btn mb-6 flex items-center text-sm link-style"><i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>Back to Dashboard</button><div class="lg:grid lg:grid-cols-3 lg:gap-8"><div class="lg:col-span-1 mb-6 lg:mb-0"><div class="card p-6 rounded-xl"><h3 class="text-xl font-semibold mb-6 text-header">Add Gallery Item</h3><button id="add-new-gallery-btn" class="btn btn-primary">Add Item</button></div></div><div class="lg:col-span-2"><div class="card p-6 rounded-xl"><h3 class="text-xl font-semibold mb-4 text-header">Existing Gallery Items</h3><div id="admin-gallery-list" class="space-y-4"></div></div></div></div></div></main>
+        <main id="manage-highlights-page" class="admin-page-section py-10"><div class="max-w-7xl mx-auto sm:px-6 lg:px-8"><button class="back-to-hub-btn mb-6 flex items-center text-sm link-style"><i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>Back to Dashboard</button><div class="lg:grid lg:grid-cols-3 lg:gap-8"><div class="lg:col-span-1 mb-6 lg:mb-0"><div class="card p-6 rounded-xl"><h3 class="text-xl font-semibold mb-6 text-header">Add New Highlight</h3><button id="add-new-highlight-btn" class="btn btn-primary">Add Highlight</button></div></div><div class="lg:col-span-2"><div class="card p-6 rounded-xl"><h3 class="text-xl font-semibold mb-4 text-header">Existing Highlights</h3><div id="admin-highlight-list" class="space-y-4"></div></div></div></div></div></main>
+        <main id="manage-partners-page" class="admin-page-section py-10"><div class="max-w-7xl mx-auto sm:px-6 lg:px-8"><button class="back-to-hub-btn mb-6 flex items-center text-sm link-style"><i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>Back to Dashboard</button><div class="lg:grid lg:grid-cols-3 lg:gap-8"><div class="lg:col-span-1 mb-6 lg:mb-0"><div class="card p-6 rounded-xl"><h3 class="text-xl font-semibold mb-6 text-header">Add New Partner</h3><button id="add-new-partner-btn" class="btn btn-primary">Add Partner</button></div></div><div class="lg:col-span-2"><div class="card p-6 rounded-xl"><h3 class="text-xl font-semibold mb-4 text-header">Current Partners</h3><div id="admin-partner-list" class="space-y-4"></div></div></div></div></div></main>
+        <main id="manage-organizers-page" class="admin-page-section py-10"><div class="max-w-7xl mx-auto sm:px-6 lg:px-8"><button class="back-to-hub-btn mb-6 flex items-center text-sm link-style"><i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>Back to Dashboard</button><div class="lg:grid lg:grid-cols-3 lg:gap-8"><div class="lg:col-span-1 mb-6 lg:mb-0"><div class="card p-6 rounded-xl"><h3 class="text-xl font-semibold mb-6 text-header">Add New Organizer</h3><button id="add-new-organizer-btn" class="btn btn-primary">Add Organizer</button></div></div><div class="lg:col-span-2"><div class="card p-6 rounded-xl"><h3 class="text-xl font-semibold mb-4 text-header">Existing Organizers</h3><div id="admin-organizer-list" class="space-y-4"></div></div></div></div></div></main>
+
+    </div>
+
+    <!-- Reusable Edit/Add Modal -->
+    <div id="edit-modal-backdrop" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div id="edit-modal-content" class="card rounded-xl w-full max-w-lg overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 id="modal-title" class="text-xl font-semibold text-header"></h3>
+                    <button id="close-modal-btn"><i data-lucide="x" class="w-6 h-6 text-subheader"></i></button>
+                </div>
+                <div id="edit-form-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORM TEMPLATES (hidden) -->
+    <div id="form-templates" class="hidden">
+       <form id="event-form-template" class="space-y-4">
+    <input type="hidden" name="id">
+
+    <div>
+        <label class="block text-sm font-medium text-subheader">Event Title</label>
+        <input type="text" name="title" required class="mt-1 form-input" placeholder="e.g., Bollywood Saturday Ft. DJ Arun">
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-subheader">Date</label>
+            <input type="date" name="event_date" required class="mt-1 form-input">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-subheader">Category</label>
+            <select name="category" required class="mt-1 form-input"></select>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-subheader">Start Time</label>
+            <div class="grid grid-cols-3 gap-1" data-time-group="start_time"></div>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-subheader">End Time</label>
+            <div class="grid grid-cols-3 gap-1" data-time-group="end_time"></div>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-subheader">Venue</label>
+            <select name="venue_id" required class="mt-1 form-input">
+                <option value="">Loading venues...</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-subheader">Organizer</label>
+            <select name="organizer_id" required class="mt-1 form-input">
+                <option value="">Loading organizers...</option>
+            </select>
+        </div>
+    </div>
+    
+    <div>
+        <label class="block text-sm font-medium text-subheader">Google Maps URL</label>
+        <input type="url" name="google_map_url" class="mt-1 form-input" placeholder="Paste Google Maps link here">
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-subheader">Entry Fee Display Text</label>
+            <input type="text" name="price_display" required class="mt-1 form-input" placeholder="e.g., ₹500 or Free Entry">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-subheader">Entry Fee Value (Number)</label>
+            <input type="number" step="0.01" name="price_value" class="mt-1 form-input" placeholder="e.g., 500.00">
+        </div>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-subheader">Poster Images</label>
+        <div class="drop-zone mt-1 p-6" data-dropzone="posterImages"><i data-lucide="upload-cloud" class="w-10 h-10 mx-auto text-gray-500"></i><p class="text-center text-sm mt-2">Drop images here</p></div>
+        <input type="file" class="hidden" multiple><div class="previews mt-4 grid grid-cols-4 gap-2"></div>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-subheader">Event Details</label>
+        <textarea name="event_details" rows="4" required class="mt-1 form-input" placeholder="The beats drop, the crowd roars..."></textarea>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-subheader">Terms & Conditions</label>
+        <textarea name="terms_and_conditions" rows="4" class="mt-1 form-input" placeholder="e.g., Please carry a valid ID proof..."></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-6">Save Event</button>
+</form>
+
+        <form id="venue-form-template" class="space-y-4">
+            <input type="hidden" name="id"><input type="hidden" name="organizerId">
+            <div><label class="block text-sm font-medium text-subheader">Venue Name</label><input type="text" name="name" required class="mt-1 form-input" placeholder="e.g., BOHO-Sarjapura"></div>
+            <div><label class="block text-sm font-medium text-subheader">Full Address</label><input type="text" name="address" required class="mt-1 form-input" placeholder="e.g., Haralur Main Road, above Axis Bank..."></div>
+            <div><label class="block text-sm font-medium text-subheader">Google Maps URL</label><input type="url" name="mapUrl" required class="mt-1 form-input" placeholder="e.g., Paste Google Maps link here"></div>
+            <div class="grid grid-cols-2 gap-4">
+                <div><label class="block text-sm font-medium text-subheader">Venue Capacity</label><input type="number" name="capacity" required class="mt-1 form-input" placeholder="e.g., 200"></div>
+                 <div><label class="block text-sm font-medium text-subheader">Default Slot Cost</label><input type="number" step="0.01" name="costPerSlot" required class="mt-1 form-input" placeholder="e.g., 10000"></div>
+            </div>
+             <div><label class="block text-sm font-medium text-subheader">Amenities</label><input type="text" name="amenities" required class="mt-1 form-input" placeholder="e.g., DJ Booth, Projector, Wi-Fi"></div>
+             <div><label class="block text-sm font-medium text-subheader">Available Equipment</label><input type="text" name="equipment" required class="mt-1 form-input" placeholder="e.g., Sound System, Microphones"></div>
+            <div><label class="block text-sm font-medium text-subheader">Venue Gallery</label><div class="drop-zone mt-1 p-6" data-dropzone="images"><i data-lucide="upload-cloud" class="w-10 h-10 mx-auto text-gray-500"></i><p class="text-center text-sm mt-2">Drop general photos</p></div><input type="file" class="hidden" multiple><div class="previews mt-4 grid grid-cols-4 gap-2"></div></div>
+            <div><label class="block text-sm font-medium text-subheader">Event Setup Photos</label><div class="drop-zone mt-1 p-6" data-dropzone="eventSetupImages"><i data-lucide="upload-cloud" class="w-10 h-10 mx-auto text-gray-500"></i><p class="text-center text-sm mt-2">Drop event setup photos</p></div><input type="file" class="hidden" multiple><div class="previews mt-4 grid grid-cols-4 gap-2"></div></div>
+            <div><label class="block text-sm font-medium text-subheader">Menu Photos (Optional)</label><div class="drop-zone mt-1 p-6" data-dropzone="menuImages"><i data-lucide="upload-cloud" class="w-10 h-10 mx-auto text-gray-500"></i><p class="text-center text-sm mt-2">Drop menu photos</p></div><input type="file" class="hidden" multiple><div class="previews mt-4 grid grid-cols-4 gap-2"></div></div>
+            <div class="pt-2"><h4 class="text-md font-semibold text-header mb-2">Available Booking Slots</h4><div id="venue-slots-container" class="space-y-3"></div><button type="button" id="add-venue-slot-btn" class="text-sm link-style mt-2">Add Booking Slot</button></div>
+            <button type="submit" class="btn btn-primary mt-6">Save Venue</button>
+        </form>
+
+        <form id="category-form-template" class="space-y-4">
+            <input type="hidden" name="id">
+            <div><label class="block text-sm font-medium text-subheader">Category Name</label><input type="text" name="name" required class="mt-1 form-input" placeholder="e.g., Concerts"></div>
+            <div><label class="block text-sm font-medium text-subheader">Icon</label><select name="icon" required class="mt-1 form-input"></select></div>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+
+        <form id="promo-form-template" class="space-y-4">
+            <input type="hidden" name="id">
+            <div><label class="block text-sm font-medium text-subheader">Title</label><input type="text" name="title" required class="mt-1 form-input" placeholder="e.g., VIP Access Offer"></div>
+            <div><label class="block text-sm font-medium text-subheader">Subtitle</label><textarea name="subtitle" rows="3" required class="mt-1 form-input" placeholder="e.g., Skip the line and get 20% off..."></textarea></div>
+            <div><label class="block text-sm font-medium text-subheader">Background Image/GIF</label><div class="drop-zone mt-1 p-6 h-32" data-dropzone="backgroundUrl"><i data-lucide="upload-cloud" class="w-10 h-10 mx-auto text-gray-500"></i><p class="text-center text-sm mt-2">Drop background</p></div><input type="file" class="hidden"><div class="previews mt-4"></div></div>
+            <div>
+    <label class="block text-sm font-medium text-subheader">Button Action</label>
+    <select name="linkType" class="mt-1 form-input">
+        <option value="event">Link to an Event</option>
+        <option value="url">Link to a Custom URL</option>
+    </select>
+</div>
+
+<div id="promo-event-link-container">
+    <label class="block text-sm font-medium text-subheader">Select Event</label>
+    <select name="eventId" class="mt-1 form-input"></select>
+</div>
+
+<div id="promo-custom-url-container" class="hidden">
+    <label class="block text-sm font-medium text-subheader">Custom URL</label>
+    <input type="url" name="buttonLink" class="mt-1 form-input" placeholder="e.g., /offers or https://example.com">
+</div>
+            <div><label class="block text-sm font-medium text-subheader">Button Text</label><input type="text" name="buttonText" required class="mt-1 form-input" placeholder="e.g., Learn More"></div>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+
+        <form id="gallery-form-template" class="space-y-4">
+            <input type="hidden" name="id"><input type="hidden" name="organizerId">
+            <div><label class="block text-sm font-medium text-subheader">Select Event</label><select name="eventId" required class="mt-1 form-input"></select></div>
+            <div><label class="block text-sm font-medium text-subheader">Images or GIFs</label><div class="drop-zone mt-1 p-6" data-dropzone="imageUrls"><i data-lucide="upload-cloud" class="w-10 h-10 mx-auto text-gray-500"></i><p class="text-center text-sm mt-2">Drop images</p></div><input type="file" class="hidden" multiple><div class="previews mt-4 grid grid-cols-4 gap-2"></div></div>
+            <div><label class="block text-sm font-medium text-subheader">Caption for all images</label><textarea name="caption" rows="3" required class="mt-1 form-input" placeholder="e.g., Crowd enjoying the music"></textarea></div>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+
+        <form id="highlight-form-template" class="space-y-4">
+            <input type="hidden" name="id"><input type="hidden" name="organizerId">
+            <div><label class="block text-sm font-medium text-subheader">Select Past Event</label><select name="eventId" required class="mt-1 form-input"></select></div>
+            <div><label class="block text-sm font-medium text-subheader">Highlight Video/GIF/Image</label><div class="drop-zone mt-1 p-6 h-32" data-dropzone="mediaUrl"><i data-lucide="upload-cloud" class="w-10 h-10 mx-auto text-gray-500"></i><p class="text-center text-sm mt-2">Drop media file here</p></div><input type="file" class="hidden"><div class="previews mt-4"></div></div>
+            <div><label class="block text-sm font-medium text-subheader">Caption</label><input type="text" name="caption" class="mt-1 form-input" placeholder="e.g., The crowd went wild!"></div>
+            <button type="submit" class="btn btn-primary">Save Highlight</button>
+        </form>
+
+        <form id="partner-form-template" class="space-y-4">
+            <input type="hidden" name="id">
+            <div><label class="block text-sm font-medium text-subheader">Partner Name</label><input type="text" name="name" required class="mt-1 form-input" placeholder="e.g., Kingfisher"></div>
+            <div><label class="block text-sm font-medium text-subheader">Partner Logo</label><div class="drop-zone mt-1 p-6 h-32" data-dropzone="logoUrl"><i data-lucide="upload-cloud" class="w-10 h-10 mx-auto text-gray-500"></i><p class="text-center text-sm mt-2">Drop logo</p></div><input type="file" class="hidden"><div class="previews mt-4"></div></div>
+            <div><label class="block text-sm font-medium text-subheader">Website URL (Optional)</label><input type="url" name="website_url" class="mt-1 form-input" placeholder="e.g., https://www.kingfisherworld.com"></div>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+
+        <form id="organizer-form-template" class="space-y-4">
+            <input type="hidden" name="id">
+            <div><label class="block text-sm font-medium text-subheader">Organizer Name</label><input type="text" name="name" required class="mt-1 form-input" placeholder="e.g., BOHO Group"></div>
+            <div><label class="block text-sm font-medium text-subheader">Username</label><input type="text" name="username" required class="mt-1 form-input" placeholder="e.g., boho_admin"></div>
+            <div><label class="block text-sm font-medium text-subheader">Password</label><input type="password" name="password" required class="mt-1 form-input" placeholder="Enter password"></div>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+    </div>
+   <script src="admin.js"></script>
+
+    <div id="toast-container" class="toast-container"><div id="toast-message"></div></div>
+
+</body>
+</html>
+

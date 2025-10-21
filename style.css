@@ -1,0 +1,270 @@
+
+        /* Define custom dark colors for the theme */
+        :root {
+            --color-deep-dark: #1e1e27; /* Main Background (Dark Grey/Blue) */
+            --color-component-dark: #28242a; /* Component/Card Background (Darker Black) */
+            --color-accent: #df0139; /* Primary Accent (Bright Red/Maroon) */
+            --color-text-light: #e2e2e2; /* Main Text (Light Gray) */
+            --color-filter-background: #373339; /* Adjusted for contrast against component dark */
+        }
+
+        /* Custom styles for layout and dark theme */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-deep-dark); 
+            min-height: 100vh;
+            color: var(--color-text-light); /* Apply main text color globally */
+        }
+        .event-card, .venue-card {
+            background-color: var(--color-component-dark);
+            transition: transform 0.3s ease;
+        }
+        .event-card:hover, .venue-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.05);
+        }
+        /* Style for the fixed mobile footer nav */
+        .mobile-footer-nav {
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.5);
+            background-color: var(--color-component-dark);
+        }
+        /* Custom scrollbar hide for horizontal sections */
+        .horizontal-scroll-container::-webkit-scrollbar {
+            display: none;
+        }
+        .horizontal-scroll-container {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        /* Custom styling for the App Download Card image background */
+        .app-download-card {
+            background-image: url('https://placehold.co/300x400/df0139/e2e2e2?text=App+Promo+Background'); /* Color update */
+            background-size: cover;
+            background-position: center;
+        }
+        /* Style for the large promo slider */
+        .promo-card {
+            min-width: 90vw; /* Take up most of the screen width on mobile */
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        @media (min-width: 640px) {
+            .promo-card {
+                min-width: 600px; /* Wider card on desktop */
+                height: 250px;
+            }
+        }
+
+        /* Modal specific styles */
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(5px);
+            transition: opacity 0.3s ease;
+        }
+        .auth-card, .filter-modal-content {
+            background-color: var(--color-component-dark);
+        }
+        /* Style for active footer nav item */
+        .nav-active {
+            color: var(--color-accent);
+        }
+        
+        /* Filter Sidebar and Event Card Styling for the Events View */
+        .explore-container {
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+        }
+        @media (min-width: 768px) {
+            .explore-container {
+                /* Removed grid layout to ensure filters are hidden and everything is single-column for the unified filtering approach */
+                display: block; 
+                padding: 2rem;
+            }
+        }
+        .filter-section {
+            background-color: var(--color-component-dark);
+        }
+        /* Custom scrollable filter for mobile/desktop */
+        .scrollable-filter {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        /* Modal for filter slide-up animation */
+        .modal-slide-up {
+            transition-property: transform;
+            transition-duration: 300ms;
+        }
+        
+        /* --- FILTER VISIBILITY FIXES --- */
+        
+        .filter-option {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            background-color: var(--color-filter-background); 
+            color: var(--color-text-light); /* ENSURE TEXT IS VISIBLE */
+        }
+        
+        .filter-option.active {
+            background-color: var(--color-accent);
+            color: #ffffff; /* Bright white for active state */
+            font-weight: 600;
+        }
+        
+        /* FIX: Ensure horizontal scrolling chips don't clip text */
+        .filter-chips {
+             padding: 0 12px; 
+             white-space: nowrap; /* Prevent chips from wrapping, forcing horizontal scroll */
+             overflow-x: scroll; /* Ensure scrollbar appears if content overflows */
+        }
+        
+        /* --- END FILTER VISIBILITY FIXES --- */
+        
+        /* Filter toggle transition class */
+        .filter-options-container {
+            transition: max-height 0.3s ease-in-out;
+            overflow: hidden;
+            background-color: var(--color-filter-background); 
+            margin-top: 4px; 
+            border-radius: 8px;
+            padding: 0; 
+        }
+        .filter-options-container.filter-open {
+            max-height: 700px !important; 
+            padding-top: 8px; 
+            padding-bottom: 8px;
+        }
+        /* Icon rotation for filter dropdown */
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+        
+        /* Specific social media colors for the share modal icons */
+        .whatsapp-icon { color: #25D366; }
+        .instagram-icon { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .download-icon { color: #4F46E5; } /* Indigo/Accent secondary color */
+        
+        /* Share Modal Styling */
+        .share-modal-content {
+            background-color: var(--color-component-dark);
+        }
+
+        /* Booking page specific styles */
+        .booking-input {
+            background-color: #373339;
+            border: 1px solid #4b5563;
+            border-radius: 8px;
+            padding: 12px;
+            width: 100%;
+            color: var(--color-text-light);
+        }
+        .booking-input:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 2px rgba(223, 1, 57, 0.5);
+        }
+        .quantity-btn {
+             border: 1px solid var(--color-accent);
+             color: var(--color-accent);
+             width: 28px;
+             height: 28px;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             border-radius: 4px;
+             font-weight: bold;
+        }
+        .quantity-display {
+            min-width: 40px;
+            text-align: center;
+        }
+
+        /* For nicely formatted Gemini responses */
+        .prose { color: var(--color-text-light); }
+        .prose h1, .prose h2, .prose h3, .prose h4, .prose strong { color: white; font-weight: 600; }
+        .prose blockquote { border-left-color: var(--color-accent); color: #a0a0a0; }
+        .prose a { color: var(--color-accent); }
+        .prose ul > li::before { background-color: var(--color-accent); }
+        .prose-invert {
+            --tw-prose-body: var(--color-text-light); --tw-prose-headings: #fff; --tw-prose-lead: #9ca3af;
+            --tw-prose-links: var(--color-accent); --tw-prose-bold: #fff; --tw-prose-counters: #9ca3af;
+            --tw-prose-bullets: var(--color-accent); --tw-prose-hr: #4b5563; --tw-prose-quotes: #d1d5db;
+            --tw-prose-quote-borders: var(--color-accent); --tw-prose-captions: #9ca3af; --tw-prose-code: #fff;
+            --tw-prose-pre-code: #d1d5db; --tw-prose-pre-bg: #1f2937; --tw-prose-th-borders: #4b5563;
+            --tw-prose-td-borders: #4b5563;
+        }
+        
+        /* My Tickets Page Specific Styles */
+        .tickets-nav-btn {
+            background-color: #373339;
+            color: #e2e2e2;
+        }
+        .tickets-nav-btn.active {
+            background-color: var(--color-component-dark);
+            font-weight: 600;
+        }
+        .tickets-sub-nav-btn {
+            color: #a0a0a0;
+            border-bottom: 2px solid transparent;
+        }
+        .tickets-sub-nav-btn.active {
+            color: var(--color-accent);
+            border-bottom-color: var(--color-accent);
+        }
+        
+        /* Event Highlights Styles - HEXAGONAL */
+        .highlight-hexagon {
+            position: relative;
+            width: 80px;
+            height: 92.38px;
+            margin: 0 8px;
+            background-color: var(--color-component-dark);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+        }
+        .highlight-hexagon::before {
+             content: '';
+             position: absolute;
+             top: -3px; left: -3px; right: -3px; bottom: -3px;
+             background: radial-gradient(circle at top left, #fd5949, #d6249f, #285AEB);
+             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+             z-index: -1;
+             transition: transform 0.2s ease-in-out;
+        }
+        .highlight-hexagon:hover {
+            transform: scale(1.1);
+        }
+        .highlight-hexagon:hover::before {
+             transform: scale(1.05) rotate(10deg);
+        }
+        .highlight-hexagon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* Story Viewer Styles */
+        #story-viewer {
+            background-color: rgba(0,0,0,0.95);
+        }
+        .story-progress-container {
+            display: flex;
+            gap: 4px;
+        }
+        .story-progress-bar {
+            background-color: rgba(255,255,255,0.3);
+            height: 2px;
+            flex-grow: 1;
+            border-radius: 2px;
+        }
+        .story-progress-fill {
+            background-color: white;
+            height: 100%;
+            width: 0;
+            /* Transition is handled in JS for smooth animation reset */
+        }
+        /* Removed .active animation in CSS, moved to JS for control */
+

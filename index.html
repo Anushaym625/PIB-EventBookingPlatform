@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Party in Bangalore - Home</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <!-- Load Lucide Icons for aesthetic UI elements -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Razorpay Checkout Script -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <link rel="stylesheet" href="style.css">
+    
+</head>
+<body class="pt-16 md:pt-20 text-gray-100">
+
+    <!-- Top Alert Banner -->
+    <div id="top-alert" class="bg-gray-800 text-white text-sm py-2 px-4 flex justify-between items-center fixed top-16 md:top-20 left-0 right-0 z-30 md:hidden">
+        <span>10% Off on mobile app</span>
+        <a href="#" class="font-bold text-[#df0139] hover:text-red-700">Download now</a>
+        <button onclick="document.getElementById('top-alert').style.display='none'" class="text-gray-400 hover:text-white">
+            <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+    </div>
+
+    <!-- Header / Top Navigation (Fixed) -->
+    <header class="fixed top-0 left-0 right-0 shadow-lg z-40 h-16 md:h-20 flex items-center justify-between px-4 lg:px-8" style="background-color: var(--color-component-dark);">
+        <!-- Logo and Brand -->
+        <div class="flex items-center space-x-6">
+            <h1 class="text-2xl font-black text-[var(--color-accent)] tracking-wider cursor-pointer" onclick="navigateTo('home')">Party in Bangalore</h1>
+        </div>
+
+        <!-- Right Side: Navigation, Login/Register, Location -->
+        <nav class="flex items-center space-x-3">
+            <!-- NEW: Home Link -->
+            <a href="#" onclick="navigateTo('home'); return false;" class="text-gray-300 hidden sm:block hover:text-[var(--color-accent)] transition">Home</a>
+            <a href="#" onclick="navigateTo('events'); return false;" id="desktop-nav-events" class="text-gray-300 hidden sm:block hover:text-[var(--color-accent)] transition">Events</a>
+            <a href="#" onclick="navigateTo('venues'); return false;" class="text-gray-300 hidden sm:block hover:text-[var(--color-accent)] transition">Venues</a>
+            
+            <div class="flex items-center space-x-1 text-gray-300 hover:text-[var(--color-accent)] cursor-pointer transition">
+                <i data-lucide="map-pin" class="w-4 h-4"></i>
+                <span class="text-sm font-semibold hidden sm:block">Bengaluru</span>
+                <i data-lucide="chevron-down" class="w-3 h-3 hidden sm:block"></i>
+            </div>
+            
+            <button id="login-register-btn" class="text-sm font-semibold text-gray-300 hover:text-[var(--color-accent)] transition hidden sm:block">Login / Register</button>
+            
+            <!-- Mobile Menu Toggle Button (Visible on small screens) -->
+            <button id="mobile-menu-toggle" class="p-2 text-gray-300 rounded-lg hover:bg-gray-700 transition">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+        </nav>
+        <!-- Profile Dropdown Menu -->
+        <div id="profile-dropdown" class="hidden absolute top-16 right-4 w-48 bg-[var(--color-component-dark)] rounded-lg shadow-lg z-50 border border-gray-700">
+            <a href="#" onclick="navigateTo('profile'); toggleProfileMenu(); return false;" class="block px-4 py-3 text-sm text-gray-300 hover:bg-gray-700/50 rounded-t-lg">Profile</a>
+            <a href="#" onclick="navigateTo('my-tickets'); toggleProfileMenu(); return false;" class="block px-4 py-3 text-sm text-gray-300 hover:bg-gray-700/50">My tickets</a>
+            <a href="#" class="block px-4 py-3 text-sm text-gray-300 hover:bg-gray-700/50">Support</a>
+            <a href="#" onclick="showAuthModal('login'); toggleProfileMenu(); return false;" class="block px-4 py-3 text-sm text-gray-300 hover:bg-gray-700/50 rounded-b-lg">Login</a>
+        </div>
+    </header>
+
+    <!-- *** START: HOME PAGE CONTENT *** -->
+    <div id="home-view">
+        <main class="max-w-7xl mx-auto px-0 md:px-4 lg:px-8 pt-10" style="padding-top: 5rem;">
+            
+            <!-- Search Bar and Date Filters (Mobile Look) -->
+            <div class="px-4 mb-6">
+                <div class="flex items-center p-3 rounded-xl" style="background-color: var(--color-component-dark);">
+                    <i data-lucide="search" class="w-5 h-5 text-gray-400 mr-3"></i>
+                    <input type="text" placeholder="Search..." class="bg-transparent w-full text-white placeholder-gray-400 focus:outline-none">
+                </div>
+            </div>
+
+            <!-- Categories/Quick Filters (Horizontal Scrolling Section) -->
+            <section class="mb-8">
+                <div id="category-list-grid" class="flex overflow-x-scroll horizontal-scroll-container space-x-4 pb-2 px-4">
+                    <!-- Category cards will be dynamically added here -->
+                </div>
+            </section>
+
+            <!-- *** Promotional Slider (Large Image Cards) *** -->
+            <section class="mb-8">
+                <div id="promo-slider-grid" class="flex overflow-x-scroll horizontal-scroll-container space-x-4 pb-2 px-4">
+                    <!-- Promo cards will be dynamically added here by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Download App Banner (Static Card above carousel - kept for general visibility) -->
+            <section class="bg-[#28242a] py-6 mb-8 mx-4 rounded-xl shadow-lg border border-gray-700 md:hidden">
+                <div class="flex flex-col items-center text-center">
+                    <h3 class="text-xl font-bold text-white mb-4">Download the Party in Bangalore App</h3>
+                    <p class="text-gray-400 text-sm mb-6">Use code: TQAPPWELCOME on your first booking & get 10% OFF!</p>
+                    <div class="flex justify-center space-x-4">
+                        <!-- Mock app screenshots/QR codes -->
+                        <img src="https://placehold.co/100x200/555/fff?text=App+Screen" alt="App Screenshot" class="rounded-lg shadow-xl">
+                        <img src="https://placehold.co/100x200/555/fff?text=App+Screen" alt="App Screenshot" class="rounded-lg shadow-xl">
+                    </div>
+                    <div class="mt-6 flex flex-col space-y-3">
+                        <button class="bg-gray-700 text-white py-2 px-6 rounded-lg font-semibold text-sm hover:bg-gray-600 transition">
+                            <i data-lucide="scan" class="w-4 h-4 inline mr-2"></i>Scan QR to Download
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Featured Events (Horizontal Carousel) -->
+            <section class="mb-10">
+                <div class="flex justify-between items-center px-4 mb-4">
+                    <h2 class="text-2xl font-bold text-white">Featured Events</h2>
+                    <!-- Carousel Navigation Buttons -->
+                    <div class="flex space-x-2 text-gray-400">
+                        <button onclick="scrollCarousel(-1); return false;" class="hover:text-[var(--color-accent)]"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+                        <button onclick="scrollCarousel(1); return false;" class="hover:text-[var(--color-accent)]"><i data-lucide="chevron-right" class="w-6 h-6"></i></button>
+                    </div>
+                </div>
+
+                <!-- Horizontal Scrolling Container -->
+                <div id="event-list-grid" class="flex overflow-x-scroll horizontal-scroll-container space-x-4 pb-4 px-4">
+                    <!-- Event Cards will be dynamically added here by JavaScript -->
+                    
+                    <!-- STATIC APP DOWNLOAD CARD (Last card in the carousel) -->
+                    <div class="app-download-card min-w-[250px] md:min-w-[300px] h-[336px] rounded-xl shadow-xl overflow-hidden flex flex-col justify-center items-center text-center p-6 border border-gray-700 relative">
+                        <!-- Overlay for better text readability -->
+                        <div class="absolute inset-0 bg-black opacity-40"></div> 
+                        <div class="relative z-10">
+                            <h4 class="text-3xl font-extrabold text-white mb-2 leading-tight">
+                                List your event on Party in Bangalore!
+                            </h4>
+                            <p class="text-gray-200 text-sm mb-6">
+                                Reach thousands of party-goers in Bengaluru instantly.
+                            </p>
+                            <button class="px-6 py-3 bg-white text-[var(--color-accent)] font-bold rounded-lg hover:bg-gray-200 transition shadow-lg">
+                                Get Started Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-6">
+                    <button onclick="navigateTo('events'); return false;" class="px-6 py-3 font-semibold rounded-full border border-[var(--color-accent)] text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 transition" style="color: var(--color-accent); border-color: var(--color-accent);">
+                        Explore All Events
+                    </button>
+                </div>
+            </section>
+            
+            <!-- NEW: Event Highlights Section -->
+            <section class="mb-10 mx-4">
+                <div class="bg-[var(--color-component-dark)] p-4 rounded-xl">
+                    <h2 class="text-2xl font-bold text-white mb-4 px-2">Event Highlights</h2>
+                    <div id="event-highlights-container" class="flex overflow-x-scroll horizontal-scroll-container pb-2">
+                        <!-- Event Highlight cards will be dynamically added here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Explore Venues Card (Button) -->
+            <section class="mb-10 px-4">
+                <div class="p-6 rounded-xl shadow-lg border border-gray-700" style="background-color: var(--color-component-dark);">
+                    <h3 class="text-xl font-bold text-white mb-2">Checkout the most Happening Venues in the City</h3>
+                    <p class="text-gray-400 text-sm mb-4">For Discounts, Ambience, Events & more</p>
+                    <button onclick="navigateTo('venues'); return false;" class="flex items-center text-[var(--color-accent)] font-semibold hover:text-red-700 transition">
+                        Explore Venues <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Gallery Section (Horizontal Carousel) -->
+            <section class="mb-10">
+                <div class="flex justify-between items-center px-4 mb-4">
+                    <h2 class="text-2xl font-bold text-white">Gallery</h2>
+                </div>
+                
+                <div class="flex overflow-x-scroll horizontal-scroll-container space-x-4 pb-4 px-4">
+                    <div class="venue-card min-w-[200px] h-36 rounded-xl overflow-hidden shadow-md relative">
+                        <img src="https://placehold.co/200x200/374151/ffffff?text=Venue+1" alt="Venue Macaw" class="w-full h-full object-cover">
+                        <div class="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-50 text-white font-semibold text-center">Macaw</div>
+                    </div>
+                    <div class="venue-card min-w-[200px] h-36 rounded-xl overflow-hidden shadow-md relative">
+                        <img src="https://placehold.co/200x200/374151/ffffff?text=Venue+2" alt="Venue Toca" class="w-full h-full object-cover">
+                        <div class="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-50 text-white font-semibold text-center">Toca Brews</div>
+                    </div>
+                    <div class="venue-card min-w-[200px] h-36 rounded-xl overflow-hidden shadow-md relative">
+                        <img src="https://placehold.co/200x200/374151/ffffff?text=Venue+3" alt="Venue Boho" class="w-full h-full object-cover">
+                        <div class="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-50 text-white font-semibold text-center">Boho Whitefield</div>
+                    </div>
+                    <div class="venue-card min-w-[200px] h-36 rounded-xl overflow-hidden shadow-md relative">
+                        <img src="https://placehold.co/200x200/374151/ffffff?text=Venue+4" alt="Venue Boho 2" class="w-full h-full object-cover">
+                        <div class="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-50 text-white font-semibold text-center">Boho HSR</div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Our Partners Section -->
+            <section class="mb-10 px-4">
+                <h2 class="text-2xl font-bold text-center text-white mb-6">Our Partners</h2>
+                <div class="flex justify-around items-center space-x-4">
+                    <img src="https://placehold.co/100x100/333/fff?text=Partner+A" alt="Partner A" class="w-20 h-20 rounded-full object-cover shadow-lg">
+                    <img src="https://placehold.co/100x100/333/fff?text=Partner+B" alt="Partner B" class="w-20 h-20 rounded-full object-cover shadow-lg">
+                    <img src="https://placehold.co/100x100/333/fff?text=Partner+C" alt="Partner C" class="w-20 h-20 rounded-full object-cover shadow-lg">
+                </div>
+            </section>
+
+            <!-- SEO/Long Text Block -->
+            <section class="mb-16 px-4">
+                <h3 class="text-xl font-bold text-white mb-4">Book Concerts, Club Nights and Events in Bengaluru</h3>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                    Looking for the best events happening near you? Party in Bangalore is your ultimate ticket booking platform for discovering and reserving tickets to concerts, music festivals, nightlife parties, stand-up comedy, food festivals, sports matches and more! Whether it's a Bollywood night in Mumbai, an EDM festival in Goa, a techno party in Bangalore, or a comedy show in Delhi, we bring you the most exciting events across India.
+                    <br><br>
+                    <span class="font-semibold text-gray-300">Popular Events in Bengaluru | Concerts and Music Festivals:</span> Live concerts in Bengaluru, Delhi NCR and Chennai. EDM nights and techno parties in Goa, Bangalore, Hyderabad, and Pune. Indie music gigs and Bollywood nights in Mumbai, Delhi, and Chennai.
+                    <br><br>
+                    <span class="font-semibold text-gray-300">Stand-Up Comedy and Open Mics:</span> Comedy shows in Mumbai, Delhi, Bangalore, Hyderabad, and Pune. Open mic nights in Kolkata, Jaipur, Chandigarh, and Chennai.
+                </p>
+            </section>
+        </main>
+    </div>
+    <!-- *** END: HOME PAGE CONTENT *** -->
+
+    <!-- *** START: EVENTS PAGE CONTENT (LIST) *** -->
+    <div id="events-view" class="hidden pt-16 md:pt-20">
+        <div class="max-w-7xl mx-auto px-0 md:px-8 pt-10" style="padding-top: 5rem;">
+
+            <!-- Main Layout Grid (Now single column on all sizes for unified filtering) -->
+            <div class="explore-container">
+                
+                <!-- Desktop Filter Sidebar (HIDDEN - we use the modal for all screen sizes) -->
+                <aside id="desktop-filter-sidebar" class="hidden"></aside>
+
+                <!-- Main Event Content Area -->
+                <div class="w-full">
+                    
+                    <!-- Search Bar and Date Tabs -->
+                    <div class="px-4 mb-4 flex flex-col sm:flex-row sm:items-center">
+                        <div class="flex-grow flex items-center p-3 rounded-xl mb-3 sm:mb-0 mr-4" style="background-color: var(--color-component-dark);">
+                            <i data-lucide="search" class="w-5 h-5 text-gray-400 mr-3"></i>
+                            <input type="text" placeholder="Search for events" class="bg-transparent w-full text-white placeholder-gray-400 focus:outline-none">
+                            
+                            <!-- Filter Icon REMOVED from Search Bar -->
+                        </div>
+                        
+                        <!-- Date Filters -->
+                        <div class="flex space-x-2 px-0 sm:pl-4">
+                            <button class="px-4 py-2 text-sm font-semibold rounded-lg bg-[var(--color-accent)] text-white">All</button>
+                            <button class="px-4 py-2 text-sm font-semibold rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700 transition">Today</button>
+                            <button class="px-4 py-2 text-sm font-semibold rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700 transition">Tomorrow</button>
+                            <button class="px-4 py-2 text-sm font-semibold rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700 transition">This Weekend</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Event Grid (FIXED OVERLAP) -->
+                    <div id="explore-event-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-16 px-4 md:px-0">
+                        <!-- Events will be dynamically added here by JavaScript -->
+                    </div>
+                </div>
+
+            </div>
+            
+        </div>
+    </div>
+    <!-- *** END: EVENTS PAGE CONTENT (LIST) *** -->
+    
+    <!-- *** START: VENUES PAGE CONTENT (LIST) *** -->
+    <div id="venues-view" class="hidden pt-16 md:pt-20">
+        <div class="max-w-7xl mx-auto px-4 md:px-8 pt-10" style="padding-top: 5rem;">
+
+            <!-- Search Bar for Outlets -->
+            <div class="mb-6">
+                <div class="flex items-center p-3 rounded-xl" style="background-color: var(--color-component-dark);">
+                    <i data-lucide="search" class="w-5 h-5 text-gray-400 mr-3"></i>
+                    <input type="text" placeholder="Search for Outlets" class="bg-transparent w-full text-white placeholder-gray-400 focus:outline-none">
+                </div>
+            </div>
+
+            <!-- Venues Grid (2 Columns on Mobile, 3+ on Desktop) -->
+            <div id="venue-list-grid" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-16">
+                <!-- Venue cards will be dynamically added here -->
+            </div>
+            
+            <!-- Filler Content / Space -->
+            <div class="h-16"></div> 
+        </div>
+    </div>
+    <!-- *** END: VENUES PAGE CONTENT (LIST) *** -->
+
+    <!-- *** START: VENUE DETAIL PAGE CONTENT *** -->
+    <div id="venue-detail-view" class="hidden pt-16 md:pt-20 pb-20">
+        <div class="w-full max-w-7xl mx-auto">
+            
+            <!-- Back Button and Title (Simulated Header on Venue Detail Page) -->
+            <div class="sticky top-16 md:top-20 z-20 flex items-center p-4" style="background-color: var(--color-deep-dark);">
+                 <button onclick="navigateTo('venues'); return false;" class="text-gray-300 hover:text-white mr-4">
+                    <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                </button>
+                <h2 id="detail-venue-name" class="text-xl font-bold text-white truncate"></h2>
+            </div>
+            
+            <!-- 1. Image Gallery (Horizontal Scroll/Carousel) -->
+            <div id="detail-image-gallery" class="horizontal-scroll-container flex overflow-x-scroll snap-x snap-mandatory mb-4">
+                <!-- Images dynamically loaded here -->
+            </div>
+
+            <!-- Main Details -->
+            <div class="p-4">
+                
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h1 id="detail-venue-title" class="text-2xl font-bold text-white"></h1>
+                        <!-- VENUE DETAILS REWORKED FOR EVENT BOOKING -->
+                        <div class="mt-2 space-y-2 text-sm">
+                            <p id="detail-venue-capacity" class="text-gray-300 flex items-center"><i data-lucide="users" class="w-4 h-4 mr-2 text-[var(--color-accent)]"></i></p>
+                            <p id="detail-venue-cost" class="text-gray-300 font-semibold flex items-center"><i data-lucide="wallet" class="w-4 h-4 mr-2 text-[var(--color-accent)]"></i></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="detail-venue-amenities" class="flex flex-wrap gap-2 mb-6">
+                    <!-- Amenity tags will be injected here -->
+                </div>
+                
+                <!-- 2. Venue Description -->
+                <h3 class="text-xl font-bold text-white mb-3 pt-4 border-t border-gray-700">About the Venue</h3>
+                <p id="detail-venue-description" class="text-gray-400 text-sm leading-relaxed mb-6"></p>
+
+                <!-- ✨ AI Night Planner -->
+                <div class="my-6">
+                     <button onclick="planNightOut()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition shadow-lg flex items-center justify-center space-x-2">
+                        <i data-lucide="sparkles" class="w-5 h-5"></i>
+                        <span>Plan My Night Out ✨</span>
+                    </button>
+                </div>
+
+                <!-- 3. Available Slots for Booking -->
+                <h3 id="available-slots-header" class="text-xl font-bold text-white mb-3 pt-4 border-t border-gray-700">Available Slots</h3>
+                <div id="detail-venue-slots" class="mb-6 space-y-3">
+                    <!-- Booking slots will be dynamically loaded here -->
+                </div>
+                
+                <!-- 4. Menu Section (Optional) -->
+                <div id="venue-menu-section" class="hidden">
+                    <h3 class="text-xl font-bold text-white mb-3 pt-4 border-t border-gray-700">Menu</h3>
+                    <div class="flex space-x-4 mb-6">
+                        <div class="min-w-[150px] bg-gray-800 rounded-xl overflow-hidden shadow-lg">
+                            <img id="detail-menu-image" src="https://placehold.co/150x150/333/fff?text=Menu" alt="Menu Preview" class="w-full h-auto object-cover">
+                            <div class="p-3">
+                                <p id="detail-menu-items" class="text-white text-sm font-semibold"></p>
+                                <p id="detail-menu-pages" class="text-gray-500 text-xs mt-1"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. Events Section -->
+                <h3 class="text-xl font-bold text-white mb-3 pt-4 border-t border-gray-700">Upcoming Public Events</h3>
+                <div id="detail-venue-events" class="text-center py-8">
+                    <i data-lucide="calendar" class="w-12 h-12 mx-auto text-gray-600 mb-4"></i>
+                    <p class="text-gray-400 font-semibold">Oops! No Events Scheduled</p>
+                </div>
+                
+                <!-- 6. Location & Map -->
+                <h3 class="text-xl font-bold text-white mb-3 pt-4 border-t border-gray-700">Location</h3>
+                <p id="detail-venue-address" class="text-gray-400 text-sm mb-4"></p>
+               <div id="venue-map-container" class="h-48 bg-gray-800 rounded-xl overflow-hidden shadow-lg border border-gray-700">
+    <img src="https://placehold.co/600x200/4B5563/E5E7EB?text=Map+Placeholder" alt="Location Map" class="w-full h-full object-cover">
+</div>
+
+            </div>
+
+        </div>
+    </div>
+    
+    <!-- Fixed CTA Button for Venue Detail -->
+    <div id="venue-cta-fixed" class="fixed bottom-0 left-0 right-0 z-50 p-3 md:p-4 border-t border-gray-700 hidden" style="background-color: var(--color-component-dark);">
+        <button id="host-event-btn" onclick="document.getElementById('available-slots-header').scrollIntoView({ behavior: 'smooth' });" class="w-full py-3 bg-[var(--color-accent)] text-white font-bold rounded-lg hover:bg-[#b01637] transition shadow-lg">
+            Host Your Event Here
+        </button>
+    </div>
+    <!-- *** END: VENUE DETAIL PAGE CONTENT *** -->
+    
+    <!-- *** START: EVENT DETAIL PAGE CONTENT *** -->
+    <div id="event-detail-view" class="hidden pb-20">
+        <div class="w-full max-w-7xl mx-auto">
+            
+            <!-- 1. Event Poster Area (Dominant Image) -->
+            <div id="event-poster-container" class="relative w-full h-[500px] md:h-[600px] overflow-hidden bg-gray-900 mb-6">
+                <!-- Back Button -->
+                 <button onclick="navigateTo('events'); return false;" class="absolute top-4 left-4 z-20 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition">
+                    <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                </button>
+                
+                <!-- Share Button - Now opens the modal -->
+                <button onclick="showShareModal()" class="absolute top-4 right-4 z-20 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition">
+                    <i data-lucide="share-2" class="w-6 h-6"></i>
+                </button>
+
+                <img id="event-poster-img" src="" alt="Event Poster" class="w-full h-full object-cover">
+            </div>
+
+            <!-- Main Details -->
+            <div class="p-4">
+                
+                <!-- Title -->
+                <h1 id="detail-event-title" class="text-2xl font-bold text-white mb-4"></h1>
+                
+                <!-- Key Information Grid -->
+                <div class="space-y-4 mb-6">
+                    
+                    <!-- Date & Time -->
+                    <div class="flex items-start space-x-4">
+                        <i data-lucide="calendar" class="w-6 h-6 text-[var(--color-accent)] flex-shrink-0 mt-1"></i>
+                        <div>
+                            <p class="text-sm font-semibold text-white">Date & Time</p>
+                            <p id="detail-event-datetime" class="text-gray-400 text-sm"></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Location -->
+                    <div class="flex items-start space-x-4">
+                        <i data-lucide="map-pin" class="w-6 h-6 text-[var(--color-accent)] flex-shrink-0 mt-1"></i>
+                        <div>
+                            <p class="text-sm font-semibold text-white">Location</p>
+                            <p id="detail-event-location" class="text-gray-400 text-sm"></p>
+                            <p id="detail-event-venue-name" class="text-sm text-[var(--color-accent)] cursor-pointer mt-1" onclick="navigateToVenueFromEvent()">Stories 2.0, Bengaluru</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event Details (Description) -->
+                <h3 class="text-xl font-bold text-white mb-3 pt-4 border-t border-gray-700">Event Details</h3>
+                <p id="detail-event-description" class="text-gray-400 text-sm leading-relaxed mb-6">
+                    The beats drop, the crowd roars. DJ Arun brings Bollywood alive! 🔥
+                </p>
+
+                <!-- ✨ AI Vibe Check -->
+                <div class="my-6">
+                    <button onclick="getEventVibe()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition shadow-lg flex items-center justify-center space-x-2">
+                        <i data-lucide="sparkles" class="w-5 h-5"></i>
+                        <span>What's the Vibe? ✨</span>
+                    </button>
+                </div>
+                <!-- Terms and Conditions (Collapsible) -->
+                <div>
+               <div class="mb-6">
+    <h3 class="py-3 text-white font-bold text-lg border-t border-gray-700">
+        Term And Conditions
+    </h3>
+    <div id="terms-options">
+        <div class="text-gray-400 text-sm p-4 pt-0">
+            <ul class="list-disc list-inside space-y-2">
+                <li>Guest list closes sharply at 9:30 PM.</li>
+                <li>Entry is subject to club rules and verification.</li>
+                <li>Stag entry may be restricted on event day.</li>
+                <li>Tickets are non-refundable.</li>
+                <li>Please carry valid ID proof.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+                </div>
+
+                            <!-- Gallery (Collapsible) -->
+                        <div class="mb-6">
+                <h3 class="py-3 text-white font-bold text-lg border-t border-gray-700">
+                    Gallery
+                </h3>
+                <div id="gallery-options">
+                    <div id="detail-event-gallery" class="grid grid-cols-3 gap-2 p-2">
+                        <img src="https://placehold.co/150x150/374151/ffffff?text=Gallery+1" class="w-full h-auto object-cover rounded-lg">
+                        <img src="https://placehold.co/150x150/242023/ffffff?text=Gallery+2" class="w-full h-auto object-cover rounded-lg">
+                        <img src="https://placehold.co/150x150/374151/ffffff?text=Gallery+3" class="w-full h-auto object-cover rounded-lg">
+                    </div>
+                </div>
+            </div>
+
+                <!-- Other Events (Horizontal Scroll) -->
+                <h3 class="text-xl font-bold text-white mb-3 pt-4 border-t border-gray-700">Other Events</h3>
+                <div id="other-events-grid" class="flex overflow-x-scroll horizontal-scroll-container space-x-4 pb-4">
+                    <!-- Other event cards dynamically loaded here -->
+                </div>
+
+                <!-- Event Address -->
+                <h3 class="text-xl font-bold text-white mb-3 pt-4 border-t border-gray-700">Event Address</h3>
+                <div class="p-4 rounded-xl border border-gray-700" style="background-color: var(--color-component-dark);">
+                    <p id="detail-event-address" class="text-white font-semibold mb-2">Stories 2.0, 5th Main Road, Sector 6, HSR Layout, Bengaluru, Karnataka, India</p>
+                  <div id="event-map-container" class="h-40 bg-gray-800 rounded-lg overflow-hidden mt-4">
+    <img src="https://placehold.co/600x200/4B5563/E5E7EB?text=Map+Placeholder" alt="Location Map" class="w-full h-full object-cover">
+</div>
+</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    
+    <!-- Fixed CTA Button for Event Detail -->
+    <div id="event-cta-fixed" class="fixed bottom-0 left-0 right-0 z-50 p-3 md:p-4 border-t border-gray-700 hidden" style="background-color: var(--color-component-dark);">
+        <div class="flex justify-between items-center max-w-7xl mx-auto">
+            <span class="text-xl font-extrabold text-white"><span id="detail-event-price-cta">₹0</span> Only</span>
+            <button onclick="showBookingPage()" class="px-6 py-3 bg-[var(--color-accent)] text-white font-bold rounded-lg hover:bg-[#b01637] transition shadow-lg">
+                Book Now
+            </button>
+        </div>
+    </div>
+    <!-- *** END: EVENT DETAIL PAGE CONTENT *** -->
+
+    <!-- *** START: BOOKING PAGE CONTENT *** -->
+    <div id="booking-view" class="hidden pb-24">
+        <div class="w-full max-w-7xl mx-auto">
+             <!-- Back Button and Title (Simulated Header on Booking Page) -->
+            <div class="sticky top-16 md:top-20 z-20 flex items-center p-4" style="background-color: var(--color-deep-dark);">
+                 <button onclick="showEventDetails(currentEventData.id); return false;" class="text-gray-300 hover:text-white">
+                    <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                </button>
+                <h2 class="text-xl font-bold text-white truncate ml-4">Event Details</h2>
+            </div>
+
+            <div class="p-4">
+                <!-- Event Info Header -->
+                <div class="flex justify-between items-center mb-8 p-4 rounded-lg" style="background-color: var(--color-component-dark);">
+                    <div>
+                        <h1 id="booking-event-title" class="text-lg font-bold text-white"></h1>
+                        <p id="booking-event-datetime" class="text-sm text-gray-400"></p>
+                    </div>
+                    <button class="text-gray-400 hover:text-white">
+                        <i data-lucide="upload" class="w-5 h-5"></i>
+                    </button>
+                </div>
+        
+                <!-- Choose Tickets Section -->
+                <h3 class="font-bold text-white mb-3 text-lg">Choose Tickets</h3>
+                <div id="booking-ticket-options" class="bg-[var(--color-component-dark)] p-4 rounded-lg">
+                    <!-- Ticket options will be dynamically inserted here -->
+                </div>
+        
+                <!-- Ticket Details Form -->
+                <h3 class="font-bold text-white mb-3 mt-8 text-lg">Ticket Details</h3>
+                <div class="space-y-4">
+                    <input type="text" id="booking-name" placeholder="Enter Your Name" class="booking-input">
+                    <div class="flex">
+                        <span class="flex items-center justify-center px-4 rounded-l-lg" style="background-color: #373339; border: 1px solid #4b5563; border-right: none;">+91</span>
+                        <input type="tel" id="booking-phone" placeholder="Enter Mobile Number" class="booking-input rounded-l-none" maxlength="10">
+                    </div>
+                    <input type="email" id="booking-email" placeholder="Enter E-mail Address" class="booking-input">
+                    <p class="text-xs text-gray-500 !mt-2">To ensure the security of your transaction, we will send a One-Time Password (OTP) to verify your identity. You will also receive the passes/tickets on the mobile number and email provided.</p>
+                </div>
+        
+                <!-- Order Details -->
+                <h3 class="font-bold text-white mb-3 mt-8 text-lg">Order Details</h3>
+                <div id="booking-order-summary" class="bg-[var(--color-component-dark)] p-4 rounded-lg space-y-3 text-sm">
+                    <!-- Order summary rows will be dynamically populated here -->
+                </div>
+        
+                <div class="flex items-center mt-6">
+                    <input type="checkbox" id="terms-agree" class="h-4 w-4 bg-gray-700 border-gray-600 rounded text-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]">
+                    <label for="terms-agree" class="ml-2 text-sm text-gray-300">I agree to the <a href="#" class="text-[var(--color-accent)] hover:underline">Terms & Conditions</a></label>
+                </div>
+            </div>
+        </div>
+    </div>
+     <!-- Fixed CTA for Booking Page -->
+    <div id="booking-cta-fixed" class="fixed bottom-0 left-0 right-0 z-50 p-3 border-t border-gray-700 hidden" style="background-color: var(--color-component-dark);">
+        <div class="flex justify-between items-center max-w-7xl mx-auto">
+            <div>
+                <span id="booking-total-amount" class="text-xl font-extrabold text-white">₹0.00</span>
+                <p id="booking-total-people" class="text-xs text-gray-400">Total People: 0</p>
+            </div>
+            <button onclick="proceedToPayment()" class="px-6 py-3 bg-[var(--color-accent)] text-white font-bold rounded-lg hover:bg-[#b01637] transition shadow-lg">
+                Verify & Proceed To Pay
+            </button>
+        </div>
+    </div>
+    <!-- *** END: BOOKING PAGE CONTENT *** -->
+
+    <!-- *** START: VENUE SLOT BOOKING PAGE *** -->
+    <div id="reservation-view" class="hidden pb-24">
+        <div class="w-full max-w-7xl mx-auto">
+            <!-- Back Button and Title -->
+            <div class="sticky top-16 md:top-20 z-20 flex items-center p-4" style="background-color: var(--color-deep-dark);">
+                 <button id="reservation-back-btn" class="text-gray-300 hover:text-white">
+                    <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                </button>
+                <h2 id="reservation-venue-name" class="text-xl font-bold text-white truncate ml-4">Confirm Booking</h2>
+            </div>
+
+            <div id="reservation-step2-view">
+                 <div class="p-4">
+                    <h3 class="font-bold text-white mb-3 text-lg">Review Booking Details</h3>
+                    <div class="p-4 rounded-lg space-y-2" style="background-color: var(--color-component-dark);">
+                        <p class="text-gray-400">Booking for</p>
+                        <p id="review-venue-name" class="font-bold text-white text-lg"></p>
+                        <p id="review-details" class="text-sm"></p>
+                        <div id="booking-fee-summary" class="flex justify-between items-center pt-2 border-t border-gray-600">
+                            <p class="font-semibold text-white">Booking Fee</p>
+                            <p id="review-booking-fee" class="font-bold text-white">₹0.00</p>
+                        </div>
+                    </div>
+
+                    <h3 class="font-bold text-white mb-3 mt-8 text-lg">Organizer Details</h3>
+                    <div class="space-y-4">
+                        <input type="text" id="reservation-name" placeholder="Organizer Name" class="booking-input">
+                        <div class="flex">
+                            <span class="flex items-center justify-center px-4 rounded-l-lg" style="background-color: #373339; border: 1px solid #4b5563; border-right: none;">+91</span>
+                            <input type="tel" id="reservation-phone" placeholder="Contact Number" class="booking-input rounded-l-none" maxlength="10">
+                        </div>
+                        <input type="email" id="reservation-email" placeholder="Contact E-mail" class="booking-input">
+                    </div>
+
+                    <h3 class="font-bold text-white mb-3 mt-8 text-lg">Event Details</h3>
+                    <div>
+                         <label for="event-type" class="sr-only">Event Type</label>
+                         <select id="event-type" class="booking-input">
+                            <option>Birthday Party</option>
+                            <option>DJ Night</option>
+                            <option>Corporate Event</option>
+                            <option>Private Party</option>
+                            <option>Other</option>
+                         </select>
+                    </div>
+
+                     <div class="flex items-center mt-6">
+                        <input type="checkbox" id="reservation-terms-agree" class="h-4 w-4 bg-gray-700 border-gray-600 rounded text-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]">
+                        <label for="reservation-terms-agree" class="ml-2 text-sm text-gray-300">I agree to the <a href="#" class="text-[var(--color-accent)] hover:underline">Terms & Conditions</a></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Fixed CTA for Venue Reservation -->
+    <div id="reservation-cta-fixed" class="fixed bottom-0 left-0 right-0 z-50 p-3 border-t border-gray-700 hidden" style="background-color: var(--color-component-dark);">
+        <div class="flex justify-between items-center max-w-7xl mx-auto">
+             <div>
+                <span id="reservation-total-amount" class="text-xl font-extrabold text-white">₹0.00</span>
+            </div>
+            <button id="reservation-cta-btn" class="px-6 py-3 bg-[var(--color-accent)] text-white font-bold rounded-lg hover:bg-[#b01637] transition shadow-lg">
+                Confirm & Pay
+            </button>
+        </div>
+    </div>
+    <!-- *** END: VENUE SLOT BOOKING PAGE *** -->
+
+    <!-- *** START: PROFILE PAGE CONTENT *** -->
+    <div id="profile-view" class="hidden pt-16 md:pt-20 pb-20">
+        <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-white">Hey! user</h2>
+                <a href="#" onclick="navigateTo('my-tickets', 'edit-profile'); return false;" class="text-sm text-gray-400 hover:text-white">Edit Profile &gt;</a>
+            </div>
+            <div class="mb-8">
+                <button onclick="showAuthModal('login')" class="w-full sm:w-auto px-8 py-3 bg-[var(--color-accent)] text-white font-bold rounded-lg hover:bg-[#b01637] transition shadow-lg">
+                    Login / Register
+                </button>
+            </div>
+            <div class="space-y-2">
+                <a href="#" onclick="navigateTo('my-tickets'); return false;" class="flex justify-between items-center p-4 rounded-lg bg-[var(--color-component-dark)] hover:bg-gray-800 transition">
+                    <span class="font-semibold text-white">My Tickets</span>
+                    <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                </a>
+                <a href="#" class="flex justify-between items-center p-4 rounded-lg bg-[var(--color-component-dark)] hover:bg-gray-800 transition">
+                    <span class="font-semibold text-white">Blogs</span>
+                    <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                </a>
+                <a href="#" class="flex justify-between items-center p-4 rounded-lg bg-[var(--color-component-dark)] hover:bg-gray-800 transition">
+                    <span class="font-semibold text-white">Support & Contact Us</span>
+                    <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                </a>
+                <a href="#" class="flex justify-between items-center p-4 rounded-lg bg-[var(--color-component-dark)] hover:bg-gray-800 transition">
+                    <span class="font-semibold text-white">Terms & Conditions</span>
+                    <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                </a>
+                <a href="#" class="flex justify-between items-center p-4 rounded-lg bg-[var(--color-component-dark)] hover:bg-gray-800 transition">
+                    <span class="font-semibold text-white">Privacy Policy</span>
+                    <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                </a>
+                <a href="#" class="flex justify-between items-center p-4 rounded-lg bg-[var(--color-component-dark)] hover:bg-gray-800 transition">
+                    <span class="font-semibold text-white">Refund & Cancellation Policy</span>
+                    <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <!-- *** END: PROFILE PAGE CONTENT *** -->
+    
+    <!-- *** START: MY TICKETS PAGE *** -->
+    <div id="my-tickets-view" class="hidden pt-16 md:pt-20 pb-20">
+        <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
+            <!-- Profile Header -->
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center space-x-4">
+                    <!-- NEW: Standard User Icon -->
+                    <div class="w-20 h-20 rounded-full bg-gray-700 flex items-center justify-center">
+                        <i data-lucide="user" class="w-10 h-10 text-gray-400"></i>
+                    </div>
+                </div>
+                <button class="px-4 py-2 text-sm font-semibold rounded-lg border border-gray-600 hover:bg-gray-800 transition">Logout</button>
+            </div>
+
+            <!-- Nav Tabs -->
+            <div class="p-1 rounded-lg bg-[#373339] flex items-center justify-around mb-6">
+                <button onclick="switchTicketTab('edit-profile')" class="tickets-nav-btn flex-1 py-2 text-sm rounded-md transition">Edit Profile</button>
+                <button onclick="switchTicketTab('my-tickets')" class="tickets-nav-btn active flex-1 py-2 text-sm rounded-md transition">My Tickets</button>
+                <button onclick="switchTicketTab('support')" class="tickets-nav-btn flex-1 py-2 text-sm rounded-md transition">Support</button>
+            </div>
+
+            <!-- Main Content Area for Tickets Page -->
+            <div id="tickets-content-area">
+                
+                <!-- My Tickets View -->
+                <div id="tickets-view-content">
+                    <!-- Unique Feature: Party Streak -->
+                    <div class="bg-gradient-to-r from-indigo-800 to-purple-800 p-4 rounded-lg mb-8 text-center">
+                        <h3 class="font-bold text-white text-lg flex items-center justify-center"><i data-lucide="flame" class="w-5 h-5 mr-2 text-orange-400"></i> Your Party Streak</h3>
+                        <p class="text-4xl font-black text-white my-2" id="party-streak-count">0</p>
+                        <p class="text-sm text-indigo-200">Months in a row! Keep it going!</p>
+                    </div>
+
+                    <!-- Sub Nav Tabs -->
+                    <div class="flex items-center space-x-6 border-b border-gray-700 mb-6">
+                        <button id="upcoming-btn" onclick="renderMyTickets('upcoming')" class="tickets-sub-nav-btn active pb-2 text-sm font-semibold">Upcoming Bookings</button>
+                        <button id="previous-btn" onclick="renderMyTickets('past')" class="tickets-sub-nav-btn pb-2 text-sm font-semibold">Previous Bookings</button>
+                    </div>
+
+                    <!-- Ticket List -->
+                    <div id="ticket-list-container" class="space-y-4">
+                        <!-- Tickets will be rendered here -->
+                    </div>
+
+                    <!-- AI Recommendations Button -->
+                    <div class="mt-8 text-center">
+                        <button onclick="getRecommendations()" class="w-full max-w-sm py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition shadow-lg flex items-center justify-center space-x-2 mx-auto">
+                            <i data-lucide="sparkles" class="w-5 h-5"></i>
+                            <span>✨ Get Recommendations</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Edit Profile View -->
+                <div id="edit-profile-view-content" class="hidden">
+                     <h3 class="text-2xl font-bold text-white mb-6">Edit Profile</h3>
+                     <div class="space-y-4 max-w-lg mx-auto">
+                        <div>
+                             <label for="profile-name" class="block text-sm font-medium text-gray-400 mb-2">Full Name</label>
+                             <input type="text" id="profile-name" value="Demo User" class="booking-input">
+                        </div>
+                        <div>
+                             <label for="profile-email" class="block text-sm font-medium text-gray-400 mb-2">Email Address</label>
+                             <input type="email" id="profile-email" value="demo@example.com" class="booking-input">
+                        </div>
+                          <div>
+                            <label for="profile-phone" class="block text-sm font-medium text-gray-400 mb-2">Phone Number</label>
+                            <div class="flex items-center bg-gray-800 rounded-lg">
+                                <span class="text-gray-400 px-3">+91</span>
+                                <input type="tel" id="profile-phone" value="9876543210" class="bg-transparent w-full p-3 focus:outline-none focus:ring-0 rounded-r-lg" maxlength="10">
+                            </div>
+                        </div>
+                        <div class="pt-4">
+                            <button onclick="alert('Profile details saved!')" class="w-full py-3 bg-[var(--color-accent)] text-white font-bold rounded-lg hover:bg-[#b01637] transition shadow-lg">Save Changes</button>
+                        </div>
+                     </div>
+                </div>
+
+                <!-- Support View -->
+                <div id="support-view-content" class="hidden">
+                    <h3 class="text-2xl font-bold text-white mb-6">Support & Contact Us</h3>
+                    <div class="bg-[var(--color-component-dark)] rounded-lg p-6 space-y-4">
+                        <p class="text-gray-300">For any queries, issues, or feedback, please feel free to reach out to us. We're here to help!</p>
+                        <div>
+                            <h4 class="font-semibold text-white">Our Address:</h4>
+                            <p class="text-gray-400 text-sm">Trux space, Mahaganapathi Nagar, 6th phase. 1st stage, Rajaji Nagar, Industrial Town, Bengaluru, Karnataka 560010</p>
+                        </div>
+                         <div>
+                            <h4 class="font-semibold text-white">Email Us:</h4>
+                            <a href="mailto:support@partyinbangalore.com" class="text-sm text-[var(--color-accent)] hover:underline">support@partyinbangalore.com</a>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-white">Call Us:</h4>
+                            <p class="text-sm text-gray-400">+91 8147113799 / +91 9071285757</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- *** END: MY TICKETS PAGE *** -->
+
+
+    <!-- *** FLOATING FILTER BUTTON (Appears on Events View only) *** -->
+    <button onclick="showFilterModal()" id="floating-filter-btn" class="fixed bottom-20 right-4 z-40 p-4 bg-[var(--color-accent)] text-white rounded-full shadow-lg hover:bg-[#b01637] transition hidden">
+        <i data-lucide="filter" class="w-6 h-6"></i>
+    </button>
+
+
+    <!-- *** START: FILTER MODAL (Unified for ALL sizes) *** -->
+    <div id="filter-modal" class="modal-backdrop fixed inset-0 z-[100] hidden flex items-end justify-center">
+        <div class="filter-modal-content w-full max-w-lg md:h-[90vh] h-[85vh] rounded-t-2xl p-6 flex flex-col transform translate-y-full transition-transform duration-300 ease-out modal-slide-up" 
+             style="background-color: var(--color-component-dark);">
+            
+            <!-- Header -->
+            <div class="flex justify-between items-center pb-4 border-b border-gray-700">
+                <h2 class="text-xl font-bold text-white">Filter</h2>
+                <button onclick="hideFilterModal()" class="text-gray-400 hover:text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            
+            <!-- Filter Options (Scrollable Body) -->
+            <div class="flex-grow overflow-y-auto py-4 space-y-6">
+                
+                <!-- Filter Section: Packages -->
+                <div class="filter-group">
+                    <button class="w-full flex justify-between items-center py-2 text-white font-bold text-lg" onclick="toggleFilterSection(this)" aria-expanded="false" aria-controls="packages-options">
+                        Packages <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 transition-transform"></i>
+                    </button>
+                    <!-- FIX: Filter options moved INSIDE this container -->
+                    <div id="packages-options" class="filter-options-container pt-2 pb-3 transition-all duration-300 overflow-hidden" style="max-height: 0;">
+                        <div class="filter-chips flex flex-wrap gap-2">
+                            <span data-filter-type="package" data-filter-value="Ladies" class="filter-option text-xs px-3 py-1 rounded-full cursor-pointer" onclick="toggleFilterOption(this)">Ladies</span>
+                            <span data-filter-type="package" data-filter-value="Couple" class="filter-option text-xs px-3 py-1 rounded-full cursor-pointer" onclick="toggleFilterOption(this)">Couple</span>
+                            <span data-filter-type="package" data-filter-value="Stag" class="filter-option text-xs px-3 py-1 rounded-full cursor-pointer" onclick="toggleFilterOption(this)">Stag</span>
+                            <span data-filter-type="package" data-filter-value="Early Bird" class="filter-option text-xs px-3 py-1 rounded-full cursor-pointer" onclick="toggleFilterOption(this)">Early Bird</span>
+                            <span data-filter-type="package" data-filter-value="VIP" class="filter-option text-xs px-3 py-1 rounded-full cursor-pointer" onclick="toggleFilterOption(this)">VIP</span>
+                            <span data-filter-type="package" data-filter-value="Kids" class="filter-option text-xs px-3 py-1 rounded-full cursor-pointer" onclick="toggleFilterOption(this)">Kids Pass</span>
+                        </div>
+                    </div>
+                </div>
+                <hr class="border-gray-700">
+
+
+                <!-- Filter Section: Event Tags -->
+                <div class="filter-group">
+                    <button class="w-full flex justify-between items-center py-2 text-white font-bold text-lg" onclick="toggleFilterSection(this)" aria-expanded="false" aria-controls="tags-options">
+                        Event Tags <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 transition-transform"></i>
+                    </button>
+                    <!-- FIX: Filter options moved INSIDE this container -->
+                    <div id="tags-options" class="filter-options-container pt-2 pb-3 transition-all duration-300 overflow-hidden" style="max-height: 0;">
+                        <div class="filter-chips flex flex-wrap gap-2">
+                            <span data-filter-type="tag" data-filter-value="Bollywood Night" class="filter-option text-xs px-3 py-1 rounded-full cursor-pointer" onclick="toggleFilterOption(this)">Bollywood Night</span>
+                            <span data-filter-type="tag" data-filter-value="DJ Party Night" class="filter-option text-xs px-3 py-1 rounded-full cursor-pointer" onclick="toggleFilterOption(this)">DJ Party Night</span>
+                            <span data-filter-type="tag" data-filter-value="Live Music" class="filter-option text-xs px-3 py-1 rounded-full cursor-pointer" onclick="toggleFilterOption(this)">Live Music</span>
+                            <span data-filter-type="tag" data-filter-value="Techno" class="filter-option text-xs px-3 py-1 rounded-full cursor-pointer" onclick="toggleFilterOption(this)">Techno</span>
+                            <span data-filter-type="tag" data-filter-value="Karaoke" class="filter-option text-xs px-3 py-1 rounded-full cursor-pointer" onclick="toggleFilterOption(this)">Karaoke</span>
+                        </div>
+                    </div>
+                </div>
+                <hr class="border-gray-700">
+
+                <!-- Filter Section: Price -->
+                <div class="filter-group">
+                    <button class="w-full flex justify-between items-center py-2 text-white font-bold text-lg" onclick="toggleFilterSection(this)" aria-expanded="false" aria-controls="price-options">
+                        Price <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 transition-transform"></i>
+                    </button>
+                    <!-- FIX: Filter options moved INSIDE this container -->
+                    <div id="price-options" class="filter-options-container pt-2 pb-3 transition-all duration-300 overflow-hidden" style="max-height: 0;">
+                        <div class="filter-chips flex flex-wrap gap-2">
+                            <span data-filter-type="price" data-filter-value="Free" class="filter-option text-xs px-3 py-1 rounded-full cursor-pointer" onclick="toggleFilterOption(this)">Free</span>
+                            <span data-filter-type="price" data-filter-value="0-500" class="filter-option text-xs px-3 py-1 rounded-full cursor-pointer" onclick="toggleFilterOption(this)">₹0-500</span>
+                            <span data-filter-type="price" data-filter-value="500-1500" class="filter-option text-xs px-3 py-1 rounded-full cursor-pointer" onclick="toggleFilterOption(this)">₹500-1500</span>
+                            <span data-filter-type="price" data-filter-value="1500+" class="filter-option text-xs px-3 py-1 rounded-full cursor-pointer" onclick="toggleFilterOption(this)">₹1500+</span>
+                        </div>
+                    </div>
+                </div>
+                <hr class="border-gray-700">
+
+                <!-- Filter Section: Location -->
+                <div class="filter-group">
+                    <button class="w-full flex justify-between items-center py-2 text-white font-bold text-lg" onclick="toggleFilterSection(this)" aria-expanded="false" aria-controls="location-options">
+                        Location <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 transition-transform"></i>
+                    </button>
+                    <!-- FIX: Filter options moved INSIDE this container -->
+                    <div id="location-options" class="filter-options-container pt-2 pb-3 transition-all duration-300 overflow-hidden" style="max-height: 0;">
+                        <div class="filter-chips flex flex-wrap gap-2">
+                            <span data-filter-type="location" data-filter-value="Koramangala" class="filter-option text-xs px-3 py-1 rounded-full cursor-pointer" onclick="toggleFilterOption(this)">Koramangala (8)</span>
+                            <span data-filter-type="location" data-filter-value="HSR Layout" class="filter-option text-xs px-3 py-1 rounded-full cursor-pointer" onclick="toggleFilterOption(this)">HSR Layout (4)</span>
+                            <span data-filter-type="location" data-filter-value="Indiranagar" class="filter-option text-xs px-3 py-1 rounded-full cursor-pointer" onclick="toggleFilterOption(this)">Indiranagar (5)</span>
+                            <span data-filter-type="location" data-filter-value="Whitefield" class="filter-option text-xs px-3 py-1 rounded-full cursor-pointer" onclick="toggleFilterOption(this)">Whitefield (2)</span>
+                            <span data-filter-type="location" data-filter-value="Electronic City" class="filter-option text-xs px-3 py-1 rounded-full cursor-pointer" onclick="toggleFilterOption(this)">Electronic City (1)</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- Footer Buttons -->
+            <div class="flex justify-between items-center pt-4 border-t border-gray-700">
+                <button onclick="hideFilterModal()" class="px-4 py-2 text-gray-400 hover:text-white font-semibold transition">Cancel</button>
+                <button class="px-4 py-2 text-[var(--color-accent)] hover:text-[#b01637] font-semibold transition" onclick="clearAllFilters(true)">Clear All</button>
+                <button class="px-6 py-3 bg-[var(--color-accent)] text-white rounded-full font-bold hover:bg-[#b01637] transition shadow-lg" onclick="hideFilterModal()">Apply Filters</button>
+            </div>
+
+        </div>
+    </div>
+    <!-- *** END: FILTER MODAL *** -->
+    
+    
+    <!-- *** START: SHARE MODAL *** -->
+    <div id="share-modal" class="modal-backdrop fixed inset-0 z-[100] hidden flex items-end justify-center">
+        <div class="share-modal-content w-full max-w-md md:max-w-lg rounded-t-2xl p-6 flex flex-col transform translate-y-full transition-transform duration-300 ease-out modal-slide-up" 
+             style="background-color: var(--color-component-dark);">
+            
+            <!-- Header -->
+            <div class="flex justify-between items-center pb-4 border-b border-gray-700">
+                <h2 class="text-xl font-bold text-white">Share Event</h2>
+                <button onclick="hideShareModal()" class="text-gray-400 hover:text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            
+            <!-- Share Options Grid -->
+            <div class="py-6 grid grid-cols-3 gap-6 text-center">
+                
+                <!-- WhatsApp -->
+                <button onclick="shareViaWhatsApp(currentEventData.title)" class="flex flex-col items-center group">
+                    <div class="p-4 rounded-full bg-gray-800 group-hover:bg-gray-700 transition shadow-lg">
+                        <i data-lucide="send" class="w-6 h-6 whatsapp-icon"></i>
+                    </div>
+                    <span class="text-sm mt-2 text-gray-300">WhatsApp</span>
+                </button>
+
+                <!-- Instagram (Simulated) -->
+                <button onclick="shareViaInstagram(currentEventData.title)" class="flex flex-col items-center group">
+                    <div class="p-4 rounded-full bg-gray-800 group-hover:bg-gray-700 transition shadow-lg">
+                        <i data-lucide="camera" class="w-6 h-6 instagram-icon" style="color:currentColor"></i>
+                    </div>
+                    <span class="text-sm mt-2 text-gray-300">Instagram</span>
+                </button>
+
+                <!-- Download Poster -->
+                <button onclick="downloadPoster(currentEventData.title)" class="flex flex-col items-center group">
+                    <div class="p-4 rounded-full bg-gray-800 group-hover:bg-gray-700 transition shadow-lg">
+                        <i data-lucide="download" class="w-6 h-6 download-icon"></i>
+                    </div>
+                    <span class="text-sm mt-2 text-gray-300">Download</span>
+                </button>
+            </div>
+
+            <div class="pt-4 border-t border-gray-700">
+                <p class="text-gray-400 text-xs text-center">A direct link has also been copied to your clipboard.</p>
+            </div>
+
+        </div>
+    </div>
+    <!-- *** END: SHARE MODAL *** -->
+    
+    <!-- *** START: STORY VIEWER MODAL *** -->
+    <div id="story-viewer" class="fixed inset-0 z-[200] hidden flex-col p-4">
+        <div id="story-progress-container" class="w-full mb-2"></div>
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <img id="story-venue-logo" src="https://placehold.co/100x100/df0139/ffffff?text=PB" class="w-8 h-8 rounded-full bg-gray-700 object-cover">
+                <span id="story-highlight-title" class="text-white font-bold text-sm"></span>
+            </div>
+            <button onclick="closeStoryViewer()" class="text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+        </div>
+        <div class="flex-grow flex items-center justify-center relative">
+            <img id="story-image" src="" class="max-w-full max-h-full object-contain rounded-lg">
+        </div>
+        <div class="absolute inset-0 flex justify-between items-center">
+            <button onclick="prevStory()" class="w-1/3 h-full"></button>
+            <button onclick="nextStory()" class="w-1/3 h-full"></button>
+        </div>
+    </div>
+    <!-- *** END: STORY VIEWER MODAL *** -->
+
+
+    <!-- Footer Section (Desktop/Full Content - styled for dark theme) -->
+    <footer id="main-footer" class="py-10 border-t border-gray-700 mt-auto" style="background-color: var(--color-component-dark);">
+        <div class="max-w-7xl mx-auto px-4 lg:px-8 text-gray-400 text-sm">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-8 mb-8">
+                <div>
+                    <h4 class="font-bold text-white mb-3">Places In Bengaluru</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-[var(--color-accent)]">Ashok Nagar</a></li>
+                        <li><a href="#" class="hover:text-[var(--color-accent)]">Koramangala</a></li>
+                        <li><a href="#" class="hover:text-[var(--color-accent)]">HSR Layout</a></li>
+                        <li><a href="#" class="hover:text-[var(--color-accent)]">Yeshwanthpur</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-3">Party Venues</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-[var(--color-accent)]">BOHO-Sarjapura</a></li>
+                        <li><a href="#" class="hover:text-[var(--color-accent)]">The FIXX</a></li>
+                        <li><a href="#" class="hover:text-[var(--color-accent)]">SkyDeck</a></li>
+                        <li><a href="#" class="hover:text-[var(--color-accent)]">Macaw 2.0</a></li>
+                    </ul>
+                </div>
+                <div class="col-span-2 md:col-span-1">
+                    <h4 class="font-bold text-white mb-3">Trending Events in Bengaluru</h4>
+                    <p>Stay tuned for the latest parties and concerts!</p>
+                </div>
+            </div>
+            
+            <hr class="border-gray-700 mb-8">
+            
+            <!-- Company Info & Socials -->
+            <div class="md:flex md:justify-between md:items-center">
+                <div class="mb-6 md:mb-0">
+                    <h1 class="text-xl font-black text-[var(--color-accent)] tracking-wider cursor-pointer" onclick="navigateTo('home')">Party in Bangalore</h1>
+                    <address class="space-y-1">
+                        <p>Trux space, Mahaganapathi Nagar, 6th phase. 1st stage, Rajaji Nagar</p>
+                        <p>Industrial Town, Rajajinagar, Bengaluru, Karnataka 560010</p>
+                        <p>Support email: support@partyinbangalore.com</p>
+                        <p>Support no.: +91 8147113799 / 9071285757</p>
+                    </address>
+                </div>
+                
+                <!-- Social Icons -->
+                <div class="flex space-x-3 text-white">
+                    <a href="#" class="p-2 rounded-full bg-gray-700 hover:bg-[var(--color-accent)] transition"><i data-lucide="instagram" class="w-5 h-5"></i></a>
+                    <a href="#" class="p-2 rounded-full bg-gray-700 hover:bg-[var(--color-accent)] transition"><i data-lucide="facebook" class="w-5 h-5"></i></a>
+                    <a href="#" class="p-2 rounded-full bg-gray-700 hover:bg-[var(--color-accent)] transition"><i data-lucide="twitter" class="w-5 h-5"></i></a>
+                    <a href="#" class="p-2 rounded-full bg-gray-700 hover:bg-[var(--color-accent)] transition"><i data-lucide="linkedin" class="w-5 h-5"></i></a>
+                </div>
+            </div>
+
+            <!-- Policy Links -->
+            <div class="mt-8 flex flex-wrap justify-center space-x-4 text-xs">
+                <a href="#" class="hover:text-[var(--color-accent)]">Our Business Site</a>
+                <a href="#" class="hover:text-[var(--color-accent)]">Blog</a>
+                <a href="#" class="hover:text-[var(--color-accent)]">Terms & Conditions</a>
+                <a href="#" class="hover:text-[var(--color-accent)]">Privacy Policy</a>
+                <a href="#" class="hover:text-[var(--color-accent)]">Refund & Cancellation Policy</a>
+                <a href="#" class="hover:text-[var(--color-accent)]">App Live</a>
+            </div>
+            
+            <p class="text-center text-xs mt-4">Copyright © 2024 Party in Bangalore Solutions Pvt. Ltd. All rights reserved</p>
+        </div>
+    </footer>
+
+
+    <!-- Fixed Mobile Footer Navigation (Hidden on Tablet/Desktop) -->
+    <div id="mobile-footer-nav" class="fixed bottom-0 left-0 right-0 border-t border-gray-700 z-50 h-16 flex justify-around items-center md:hidden mobile-footer-nav">
+        <a href="#" onclick="navigateTo('home'); return false;" id="nav-home" class="nav-link flex flex-col items-center text-xs text-[var(--color-accent)]">
+            <i data-lucide="home" class="w-5 h-5"></i>
+            <span>Home</span>
+        </a>
+        <a href="#" onclick="navigateTo('events'); return false;" id="nav-events" class="nav-link flex flex-col items-center text-xs text-gray-400 hover:text-[var(--color-accent)] transition">
+            <i data-lucide="calendar-days" class="w-5 h-5"></i>
+            <span>Events</span>
+        </a>
+        <a href="#" onclick="navigateTo('venues'); return false;" id="nav-venues" class="nav-link flex flex-col items-center text-xs text-gray-400 hover:text-[var(--color-accent)] transition">
+            <i data-lucide="map" class="w-5 h-5"></i>
+            <span>Venues</span>
+        </a>
+        <a href="#" onclick="navigateTo('profile'); return false;" id="nav-profile" class="nav-link flex flex-col items-center text-xs text-gray-400 hover:text-[var(--color-accent)] transition">
+            <i data-lucide="user" class="w-5 h-5"></i>
+            <span>Profile</span>
+        </a>
+    </div>
+
+    <!-- *** START: AUTHENTICATION MODAL *** -->
+    <div id="auth-modal" class="modal-backdrop fixed inset-0 z-[100] flex items-center justify-center p-4 hidden">
+        <div id="auth-card" class="auth-card w-full max-w-sm rounded-xl p-6 shadow-2xl border border-gray-700 relative">
+            
+            <!-- Close Button -->
+            <button onclick="hideAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+
+            <!-- Auth Tabs -->
+            <div class="flex border-b border-gray-600 mb-6">
+                <button id="tab-login" onclick="switchAuthTab('login')" class="flex-1 py-3 text-lg font-semibold border-b-2 border-[var(--color-accent)] text-white transition">Login</button>
+                <button id="tab-register" onclick="switchAuthTab('register')" class="flex-1 py-3 text-lg font-semibold border-b-2 border-transparent text-gray-500 hover:text-white transition">Register</button>
+            </div>
+            
+            <!-- Auth Form Container -->
+            <div id="auth-content">
+                
+                <!-- 1. LOGIN FORM (Default/Phone Number) -->
+                <div id="form-login" class="auth-view">
+                    <h2 class="text-xl font-bold text-white mb-4">Login with Phone Number</h2>
+                    <form onsubmit="requestOtp('login'); return false;">
+                        <div class="mb-4">
+                            <label for="login-phone" class="block text-sm font-medium text-gray-400 mb-2">Phone Number</label>
+                            <div class="flex items-center bg-gray-800 rounded-lg">
+                                <span class="text-gray-400 px-3">+91</span>
+                                <input type="tel" id="login-phone" placeholder="Enter 10 digit number" class="bg-transparent w-full p-3 focus:outline-none focus:ring-0 rounded-r-lg" required maxlength="10">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-[var(--color-accent)] text-white py-3 rounded-lg font-bold hover:bg-[#b01637] transition shadow-lg">
+                            Get OTP to Login
+                        </button>
+                        <p class="text-center text-gray-500 text-sm mt-4">New user? <a href="#" onclick="switchAuthTab('register'); return false;" class="text-[var(--color-accent)] hover:underline">Register here</a></p>
+                    </form>
+                </div>
+                
+                <!-- 2. REGISTER FORM -->
+                <div id="form-register" class="auth-view hidden">
+                    <h2 class="text-xl font-bold text-white mb-4">Create New Account</h2>
+                    <form onsubmit="requestOtp('register'); return false;">
+                        <div class="mb-4">
+                            <label for="register-name" class="block text-sm font-medium text-gray-400 mb-2">Full Name</label>
+                            <input type="text" id="register-name" placeholder="John Doe" class="w-full p-3 rounded-lg bg-gray-800 focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="register-email" class="block text-sm font-medium text-gray-400 mb-2">Email Address</label>
+                            <input type="email" id="register-email" placeholder="email@example.com" class="w-full p-3 rounded-lg bg-gray-800 focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]" required>
+                        </div>
+                        <div class="mb-6">
+                            <label for="register-phone" class="block text-sm font-medium text-gray-400 mb-2">Phone Number</label>
+                            <div class="flex items-center bg-gray-800 rounded-lg">
+                                <span class="text-gray-400 px-3">+91</span>
+                                <input type="tel" id="register-phone" placeholder="Enter 10 digit number" class="bg-transparent w-full p-3 focus:outline-none focus:ring-0 rounded-r-lg" required maxlength="10">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-[var(--color-accent)] text-white py-3 rounded-lg font-bold hover:bg-[#b01637] transition shadow-lg">
+                            Get OTP and Register
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 3. OTP VERIFICATION STEP -->
+                <div id="form-otp" class="auth-view hidden text-center">
+                    <h2 class="text-xl font-bold text-white mb-2">Verify Your Number</h2>
+                    <p class="text-gray-400 text-sm mb-6">Enter the 6-digit OTP sent to <span id="otp-target-phone" class="font-semibold text-white"></span></p>
+                    <form onsubmit="verifyOtp(); return false;">
+                        <div class="flex justify-center space-x-2 mb-6">
+                        
+                            <!-- Input fields for OTP -->
+                            <input type="text" class="w-10 h-10 text-center text-xl font-bold bg-gray-800 rounded-lg border border-gray-700 focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent p-2" maxlength="1" required>
+                            <input type="text" class="w-10 h-10 text-center text-xl font-bold bg-gray-800 rounded-lg border border-gray-700 focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent p-2" maxlength="1" required>
+                            <input type="text" class="w-10 h-10 text-center text-xl font-bold bg-gray-800 rounded-lg border border-gray-700 focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent p-2" maxlength="1" required>
+                            <input type="text" class="w-10 h-10 text-center text-xl font-bold bg-gray-800 rounded-lg border border-gray-700 focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent p-2" maxlength="1" required>
+                            <input type="text" class="w-10 h-10 text-center text-xl font-bold bg-gray-800 rounded-lg border border-gray-700 focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent p-2" maxlength="1" required>
+                            <input type="text" class="w-10 h-10 text-center text-xl font-bold bg-gray-800 rounded-lg border border-gray-700 focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent p-2" maxlength="1" required>
+                        </div>
+                        <button type="submit" class="w-full bg-[var(--color-accent)] text-white py-3 rounded-lg font-bold hover:bg-[#b01637] transition shadow-lg mb-3">
+                            Verify OTP
+                        </button>
+                        <p class="text-gray-500 text-sm">Didn't receive code? <a href="#" onclick="resendOtp(); return false;" class="text-[var(--color-accent)] hover:underline">Resend OTP</a></p>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- *** END: AUTHENTICATION MODAL *** -->
+
+    <!-- *** START: GEMINI RESPONSE MODAL *** -->
+    <div id="gemini-modal" class="modal-backdrop fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-lg rounded-xl p-6 shadow-2xl border border-gray-700 relative bg-[var(--color-component-dark)]">
+            <!-- Header -->
+            <div class="flex justify-between items-center pb-3 mb-4 border-b border-gray-700">
+                <h2 id="gemini-modal-title" class="text-xl font-bold text-white flex items-center"><i data-lucide="sparkles" class="w-5 h-5 mr-2 text-indigo-400"></i><span>AI Assistant</span></h2>
+                <button onclick="hideGeminiModal()" class="text-gray-400 hover:text-white transition">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <!-- Content -->
+            <div id="gemini-modal-content" class="text-gray-300 max-h-[60vh] overflow-y-auto">
+                <!-- Loading indicator -->
+                <div id="gemini-loading" class="flex flex-col items-center justify-center py-8">
+                     <div class="w-8 h-8 border-4 border-t-transparent border-[var(--color-accent)] rounded-full animate-spin"></div>
+                     <p class="mt-4 text-gray-400">Generating ideas...</p>
+                </div>
+                <!-- Response text -->
+                <div id="gemini-response-text" class="prose prose-invert max-w-none"></div>
+            </div>
+        </div>
+    </div>
+    <!-- *** END: GEMINI RESPONSE MODAL *** -->
+     <script src ="script.js"></script>
+
+
+
+</body>
+</html>
