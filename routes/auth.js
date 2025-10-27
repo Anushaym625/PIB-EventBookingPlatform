@@ -136,6 +136,7 @@ router.post('/verify-otp', async (req, res) => {
         res.status(500).json({ success: false, message: "A server error occurred." });
     }
 });
+return router;
 }
 
 module.exports = authRouter;

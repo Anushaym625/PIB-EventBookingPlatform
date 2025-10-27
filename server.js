@@ -829,12 +829,12 @@ app.get('/api/public/promos', async (req, res) => {
 // --- Mount the PUBLIC Authentication Routes ---
 // This passes the database pool to the auth router function
 try {
-    const authRoutesInstance = authRouter(pool); // Call the function to get the router
-    app.use('/api/public/auth', authRoutesInstance);
-    console.log("✅ Authentication routes mounted successfully at /api/public/auth");
+    const authRoutesInstance = authRouter(pool); // Call the function to get the router
+    app.use('/api/public/auth', authRoutesInstance);
+    console.log("✅ Authentication routes mounted successfully at /api/public/auth"); // <-- Corrected line
 } catch(error) {
-     console.error("❌ FATAL: Could not mount authentication routes.", error);
-     process.exit(1);
+     console.error("❌ FATAL: Could not mount authentication routes.", error);
+     process.exit(1);
 }
 // GET endpoint to fetch all events with ALL details for the public page
 app.get('/api/public/events', async (req, res) => {

@@ -218,9 +218,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // ... (your existing 'if' blocks for 'event', 'gallery', etc.) ...
 
 
-  
-
-
         if (type === 'promo') {
             const linkTypeSelect = form.querySelector('[name="linkType"]');
             const eventContainer = form.querySelector('#promo-event-link-container');
@@ -351,8 +348,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (itemData.amenities && typeof itemData.amenities === 'string') {
                     itemData.amenities = itemData.amenities.split(',').map(s => s.trim()).filter(Boolean);
-                } else {
+                } else if (!itemData.amenities) { // Ensure it's at least an empty array
                     itemData.amenities = [];
+                }
+            }
+                        // Handle 'details' field (assuming it's a JSON object string)
+            if (itemData.details && typeof itemData.details === 'string') {
+                try {
+                    // Try to parse the string as a JSON object
+                    itemData.details = JSON.parse(itemData.details);
+                } catch (e) {
+                    console.error('Invalid JSON syntax for details field:', itemData.details);
+                    showToast('Error: Details field must contain valid JSON format (e.g., {"key": "value"}).', 'error');
+                    return; // Stop the form submission
+                }
+            }
+
+            // Handle 'menu' field (same logic)
+            if (itemData.menu && typeof itemData.menu === 'string') {
+                try {
+                    // Try to parse the string as a JSON object
+                    itemData.menu = JSON.parse(itemData.menu);
+                } catch (e) {
+                    console.error('Invalid JSON syntax for menu field:', itemData.menu);
+                    showToast('Error: Menu field must contain valid JSON format (e.g., {"items": "...", "pages": 2}).', 'error');
+                    return; // Stop the form submission
                 }
             }
 
