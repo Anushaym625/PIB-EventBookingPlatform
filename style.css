@@ -266,5 +266,43 @@
             width: 0;
             /* Transition is handled in JS for smooth animation reset */
         }
-        /* Removed .active animation in CSS, moved to JS for control */
+       /* This animation starts the content 100% *off-screen to the right* (100vw)
+          and moves it 100% *off-screen to the left* (-100% of its own width).
+        */
+        @keyframes scroll-from-right {
+          0%   { transform: translateX(100vw); }
+          100% { transform: translateX(-100%); }
+        }
 
+        .auto-scroller {
+          display: flex;
+          flex-wrap: nowrap; 
+          white-space: nowrap;
+          
+          /* Adjust 40s to be faster or slower */
+          animation: scroll-from-right 40s linear infinite;
+        }
+.horizontal-scroll-container {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.horizontal-scroll-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}      
+.gallery-group {
+  flex-shrink: 0;
+  margin: 0 8px; /* Added margin for spacing between groups */
+}#lightbox-modal {
+    display: none; /* Hidden by default */
+    align-items: center;
+    justify-content: center;
+}
+
+#lightbox-modal.flex { /* Use flex to show it */
+    display: flex; 
+}
+
+#lightbox-image {
+    max-width: 90vw; /* Limit width on smaller screens */
+    max-height: 80vh; /* Limit height */
+}

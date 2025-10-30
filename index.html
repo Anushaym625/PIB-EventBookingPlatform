@@ -132,9 +132,9 @@
                             <p class="text-gray-200 text-sm mb-6">
                                 Reach thousands of party-goers in Bengaluru instantly.
                             </p>
-                            <button class="px-6 py-3 bg-white text-[var(--color-accent)] font-bold rounded-lg hover:bg-gray-200 transition shadow-lg">
-                                Get Started Now
-                            </button>
+                           <button onclick="alert('Button Click Test!')" class="px-6 py-3 bg-white text-[var(--color-accent)] font-bold rounded-lg hover:bg-gray-200 transition shadow-lg">
+    Get Started Now
+</button>
                         </div>
                     </div>
                 </div>
@@ -168,38 +168,30 @@
             </section>
 
             <!-- Gallery Section (Horizontal Carousel) -->
-            <section class="mb-10">
+           <section class="mb-10">
                 <div class="flex justify-between items-center px-4 mb-4">
                     <h2 class="text-2xl font-bold text-white">Gallery</h2>
                 </div>
                 
-                <div class="flex overflow-x-scroll horizontal-scroll-container space-x-4 pb-4 px-4">
-                    <div class="venue-card min-w-[200px] h-36 rounded-xl overflow-hidden shadow-md relative">
-                        <img src="https://placehold.co/200x200/374151/ffffff?text=Venue+1" alt="Venue Macaw" class="w-full h-full object-cover">
-                        <div class="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-50 text-white font-semibold text-center">Macaw</div>
-                    </div>
-                    <div class="venue-card min-w-[200px] h-36 rounded-xl overflow-hidden shadow-md relative">
-                        <img src="https://placehold.co/200x200/374151/ffffff?text=Venue+2" alt="Venue Toca" class="w-full h-full object-cover">
-                        <div class="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-50 text-white font-semibold text-center">Toca Brews</div>
-                    </div>
-                    <div class="venue-card min-w-[200px] h-36 rounded-xl overflow-hidden shadow-md relative">
-                        <img src="https://placehold.co/200x200/374151/ffffff?text=Venue+3" alt="Venue Boho" class="w-full h-full object-cover">
-                        <div class="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-50 text-white font-semibold text-center">Boho Whitefield</div>
-                    </div>
-                    <div class="venue-card min-w-[200px] h-36 rounded-xl overflow-hidden shadow-md relative">
-                        <img src="https://placehold.co/200x200/374151/ffffff?text=Venue+4" alt="Venue Boho 2" class="w-full h-full object-cover">
-                        <div class="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-50 text-white font-semibold text-center">Boho HSR</div>
-                    </div>
+                <div id="gallery-container" class="flex overflow-x-scroll horizontal-scroll-container pb-4 px-4">
+                    <p class="text-gray-500">Loading gallery...</p>
                 </div>
             </section>
-            
+            <div id="lightbox-modal" class="fixed inset-0 z-[200] hidden items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0.8);">
+        <div class="relative max-w-3xl max-h-[80vh]">
+            <img id="lightbox-image" src="" alt="Gallery Image" class="block max-w-full max-h-full object-contain">
+            <button id="close-lightbox-btn" class="absolute top-2 right-2 p-2 text-white bg-black/50 rounded-full hover:bg-black/80 transition">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+    </div>
+
+
             <!-- Our Partners Section -->
             <section class="mb-10 px-4">
                 <h2 class="text-2xl font-bold text-center text-white mb-6">Our Partners</h2>
-                <div class="flex justify-around items-center space-x-4">
-                    <img src="https://placehold.co/100x100/333/fff?text=Partner+A" alt="Partner A" class="w-20 h-20 rounded-full object-cover shadow-lg">
-                    <img src="https://placehold.co/100x100/333/fff?text=Partner+B" alt="Partner B" class="w-20 h-20 rounded-full object-cover shadow-lg">
-                    <img src="https://placehold.co/100x100/333/fff?text=Partner+C" alt="Partner C" class="w-20 h-20 rounded-full object-cover shadow-lg">
+                <div id="partners-container" class="flex flex-wrap justify-center items-center gap-x-8 gap-y-6">
+                    <p class="text-gray-500">Loading partners...</p>
                 </div>
             </section>
 
@@ -330,12 +322,12 @@
                         <span>Plan My Night Out ✨</span>
                     </button>
                 </div>
+                <!-- 3. Available Slots Section -->
+                    <section id="available-slots-section">
+                    <h2 class="text-xl font-bold mb-2">Available Slots</h2>
+                    <div id="detail-venue-slots" class="space-y-3"></div>
+                    </section>
 
-                <!-- 3. Available Slots for Booking -->
-                <h3 id="available-slots-header" class="text-xl font-bold text-white mb-3 pt-4 border-t border-gray-700">Available Slots</h3>
-                <div id="detail-venue-slots" class="mb-6 space-y-3">
-                    <!-- Booking slots will be dynamically loaded here -->
-                </div>
                 
                 <!-- 4. Menu Section (Optional) -->
                 <div id="venue-menu-section" class="hidden">
@@ -371,10 +363,14 @@
     </div>
     
     <!-- Fixed CTA Button for Venue Detail -->
-    <div id="venue-cta-fixed" class="fixed bottom-0 left-0 right-0 z-50 p-3 md:p-4 border-t border-gray-700 hidden" style="background-color: var(--color-component-dark);">
-        <button id="host-event-btn" onclick="document.getElementById('available-slots-header').scrollIntoView({ behavior: 'smooth' });" class="w-full py-3 bg-[var(--color-accent)] text-white font-bold rounded-lg hover:bg-[#b01637] transition shadow-lg">
-            Host Your Event Here
+            <div id="venue-cta-fixed" class="fixed bottom-0 left-0 right-0 z-50 p-3 md:p-4 border-t border-gray-700 hidden" style="background-color: var(--color-component-dark);">
+            <button 
+        id="host-event-btn"
+        class="w-full py-3 bg-[var(--color-accent)] text-white font-bold rounded-lg hover:bg-[#b01637] transition"
+        >
+        Host Your Event Here
         </button>
+            
     </div>
     <!-- *** END: VENUE DETAIL PAGE CONTENT *** -->
     
@@ -1024,7 +1020,7 @@
                 <a href="#" class="hover:text-[var(--color-accent)]">App Live</a>
             </div>
             
-            <p class="text-center text-xs mt-4">Copyright © 2024 Party in Bangalore Solutions Pvt. Ltd. All rights reserved</p>
+            <p class="text-center text-xs mt-4">Copyright © 2025 Party in Bangalore Solutions Pvt. Ltd. All rights reserved</p>
         </div>
     </footer>
 

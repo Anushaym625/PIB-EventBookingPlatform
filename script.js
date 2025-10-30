@@ -810,99 +810,117 @@ function downloadPoster(eventTitle) {
     hideShareModal();
 }
 
-// --- VENUE DETAIL LOGIC (COMPLETED) ---
-function showVenueDetails(venueId) {
-    const venue = venues.find(v => v.id === venueId);
-    if (!venue) return;
-    currentVenueData = venue;
+async function showVenueDetails(id) {
+  try {
+    const res = await fetch(`http://localhost:3000/api/public/venues/${id}`);
+    if (!res.ok) throw new Error("Failed to fetch venue details");
+    const venue = await res.json();
 
-    document.getElementById('detail-venue-name').textContent = venue.name;
-    document.getElementById('detail-venue-title').textContent = venue.name;
-    document.getElementById('detail-venue-capacity').innerHTML = `<i data-lucide="users" class="w-4 h-4 mr-2 text-[var(--color-accent)]"></i> Capacity: ${venue.capacity} Guests`;
-    document.getElementById('detail-venue-cost').innerHTML = `<i data-lucide="wallet" class="w-4 h-4 mr-2 text-[var(--color-accent)]"></i> ₹${venue.costPerSlot} per slot`;
-    // --- With these safer versions ---
-   // --- With these safer versions ---
-    const descEl = document.getElementById('detail-venue-description');
-    // ✅ Use optional chaining for JSONB properties
-    if(descEl) descEl.textContent = venue.details?.description || 'No description available.';
+    // Switch views
+    document.getElementById('venues-view').classList.add('hidden');
+    document.getElementById('venue-detail-view').classList.remove('hidden');
 
-    const addressEl = document.getElementById('detail-venue-address');
-    // ✅ Use optional chaining and fallback to 'location' column
-    if(addressEl) addressEl.textContent = venue.details?.address || venue.location || 'Address not available';
+    // Basic info
+    document.getElementById('detail-venue-title').textContent = venue.name || 'Venue';
+    document.getElementById('detail-venue-name').textContent = venue.name || '';
+    document.getElementById('detail-venue-capacity').innerHTML =
+      `<i data-lucide="users" class="w-4 h-4 mr-2 text-[var(--color-accent)]"></i> ${venue.capacity || 'N/A'} Guests`;
+    document.getElementById('detail-venue-cost').innerHTML =
+      `<i data-lucide="wallet" class="w-4 h-4 mr-2 text-[var(--color-accent)]"></i> ₹${venue.cost_per_slot || '0.00'}`;
 
+    // Description
+    const details = venue.details || {};
+    document.getElementById('detail-venue-description').textContent =
+      details.description || 'No description available.';
+
+    // Amenities
     const amenitiesContainer = document.getElementById('detail-venue-amenities');
-    amenitiesContainer.innerHTML = (venue.amenities || []).map(amenity => `<span class="text-xs font-medium bg-gray-700 text-gray-300 px-2 py-1 rounded-full">${amenity}</span>`).join('');
+    amenitiesContainer.innerHTML = (venue.amenities || [])
+      .map(a => `<span class="text-xs font-medium bg-gray-700 text-gray-300 px-2 py-1 rounded-full">${a}</span>`)
+      .join('') || '<p class="text-gray-500 text-sm">No amenities listed.</p>';
 
-    const gallery = document.getElementById('detail-image-gallery');
-    const allImages = [...(venue.gallery || []), ...(venue.eventPhotos || [])];
-    gallery.innerHTML = allImages.map(url => `<div class="min-w-full h-80 bg-gray-700 snap-center"><img src="${url}" onerror="this.onerror=null;this.src='https://placehold.co/800x400/374151/ffffff?text=Venue+Image';" class="w-full h-full object-cover"></div>`).join('');
-    
+    // Gallery
+    const galleryContainer = document.getElementById('detail-image-gallery');
+    const galleryImages = [...(venue.gallery || []), ...(venue.event_photos || [])];
+    galleryContainer.innerHTML = galleryImages.length
+      ? galleryImages.map(url =>
+          `<div class="min-w-full h-80 bg-gray-700 snap-center">
+            <img src="${url}" onerror="this.src='https://placehold.co/800x400/333/fff?text=No+Image'" 
+                 class="w-full h-full object-cover rounded-xl">
+          </div>`
+        ).join('')
+      : `<p class="text-gray-500 text-center w-full p-4">No images available</p>`;
+
+    // Available Slots
     const slotsContainer = document.getElementById('detail-venue-slots');
-    if(venue.availableSlots && venue.availableSlots.length > 0) {
-        slotsContainer.innerHTML = venue.availableSlots.map(slot => `
-            <div class="bg-gray-800 p-3 rounded-lg flex justify-between items-center">
-                <div>
-                    <p class="font-semibold text-white">${slot.day}, ${slot.date}</p>
-                    <p class="text-sm text-gray-400">${slot.time}</p>
-                </div>
-                <button onclick='showReservationPage(${venue.id}, ${JSON.stringify(slot)})' class="px-4 py-2 bg-[var(--color-accent)] text-white text-sm font-bold rounded-lg hover:bg-[#b01637] transition">Book Slot</button>
+    const slots = venue.available_slots || [];
+    slotsContainer.innerHTML = slots.length
+      ? slots.map(slot => `
+          <div class="bg-gray-800 p-3 rounded-lg flex justify-between items-center">
+            <div>
+              <p class="font-semibold text-white">${slot.day || ''}</p>
+              <p class="text-sm text-gray-400">${slot.start || ''} - ${slot.end || ''}</p>
             </div>
-        `).join('');
-    } else {
-        slotsContainer.innerHTML = `<p class="text-gray-500 text-center">No slots available for booking currently.</p>`;
-    }
+            <button class="px-4 py-2 bg-[var(--color-accent)] text-white text-sm font-bold rounded-lg hover:bg-[#b01637] transition">
+              Book Slot
+            </button>
+          </div>`
+        ).join('')
+      : `<p class="text-gray-500 text-center">No slots available</p>`;
 
+    // Menu Section
     const menuSection = document.getElementById('venue-menu-section');
-    if (venue.menu && venue.menu.items) {
-        document.getElementById('detail-menu-items').textContent = venue.menu.items;
-        document.getElementById('detail-menu-pages').textContent = `${venue.menu.pages} pages`;
-        document.getElementById('detail-menu-image').src = venue.menu.image;
-        menuSection.classList.remove('hidden');
+    if (venue.menu && (venue.menu.items || venue.menu.pages || venue.menu.image)) {
+      document.getElementById('detail-menu-items').textContent = venue.menu.items || 'See Menu';
+      document.getElementById('detail-menu-pages').textContent = `${venue.menu.pages || 1} pages`;
+      document.getElementById('detail-menu-image').src = venue.menu.image || 'https://placehold.co/150x150';
+      menuSection.classList.remove('hidden');
     } else {
-        menuSection.classList.add('hidden');
+      menuSection.classList.add('hidden');
     }
-    // --- Add this logic inside your function that shows venue details ---
 
-// 1. Get the map URL from your admin data
-// --- This is the corrected block ---
+    // Address / Map
+    document.getElementById('detail-venue-address').textContent =
+      details.address || venue.location || 'Address not available';
+    const mapContainer = document.getElementById('venue-map-container');
+    mapContainer.innerHTML = '';
+    // ====================================================
+// ✅ Inside showVenueDetails(venue)
+// ====================================================
 
-// 1. Get the map URL from your 'venue' object
-//    (Assuming your 'venues' table also uses 'google_map_url')
-const mapUrl = venue.google_map_url; 
+// 1️⃣ Scroll to slots when "Host Your Event Here" is clicked
+const hostEventBtn = document.getElementById('host-event-btn');
+if (hostEventBtn) {
+    hostEventBtn.addEventListener('click', () => {
+        const slotsSection = document.getElementById('available-slots-section');
+        if (slotsSection) {
+            slotsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-// --- THIS IS THE NEW, CORRECTED BLOCK ---
-
-// 1. Find the gallery container and clear it
-const galleryContainer = document.getElementById('detail-event-gallery');
-galleryContainer.innerHTML = ''; // Clear hardcoded images
-
-// 2. Find all gallery *rows* for this event.
-const galleryRows = galleries.filter(row => row.event_id === currentEventData.id);
-
-// 3. Extract all URLs from those rows into a single flat array
-//    (This handles multiple rows per event, and multiple URLs per row)
-const allImageUrls = galleryRows.flatMap(row => row.image_urls || []);
-
-// 4. Loop through the *correct* flat array of URLs and build the gallery
-if (allImageUrls && allImageUrls.length > 0) {
-    allImageUrls.forEach(imageUrl => { // 'imageUrl' is now a string (e.g., "http://.../img1.png")
-        // Create a new <img> element
-        const img = document.createElement('img');
-        
-        img.src = imageUrl; // This is now correct
-        img.className = 'w-full h-auto object-cover rounded-lg';
-        
-        // Add the new image to the container
-        galleryContainer.appendChild(img);
+            // Add a highlight border animation for clarity
+            slotsSection.classList.add('ring-2', 'ring-[var(--color-accent)]');
+            setTimeout(() => {
+                slotsSection.classList.remove('ring-2', 'ring-[var(--color-accent)]');
+            }, 2000);
+        }
     });
-} else {
-    // Optional: Show a message if no images
-    galleryContainer.innerHTML = '<p class="text-gray-400 text-sm col-span-3">No gallery images available for this event.</p>';
 }
-// --- End of corrected block ---
-    
-    navigateTo('venue-detail');
+
+// 2️⃣ Attach click listeners to all slot booking buttons
+const slotButtons = document.querySelectorAll('#detail-venue-slots button');
+slotButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const venueName = document.getElementById('detail-venue-name').textContent;
+
+        // Redirect user to booking page, pre-filling the venue name
+        window.location.href = `/booking.html?venue=${encodeURIComponent(venueName)}`;
+    });
+});
+    // Re-init icons
     if (typeof lucide !== 'undefined') lucide.createIcons();
+
+  } catch (err) {
+    console.error('Error loading venue details:', err);
+  }
 }
 
 // --- STORY VIEWER IMPLEMENTATION ---
@@ -910,30 +928,110 @@ if (allImageUrls && allImageUrls.length > 0) {
 function renderEventHighlights() {
     const container = document.getElementById('event-highlights-container');
     if (!container) return;
-    container.innerHTML = eventHighlights.map((highlight, hIndex) => `
+    
+    // --- FIX 1: Use the correct global variable 'highlights' ---
+    if (!highlights || highlights.length === 0) {
+        container.innerHTML = "<p class='text-gray-500 text-sm'>No highlights available.</p>";
+        return;
+    }
+
+    container.innerHTML = highlights.map((highlight, hIndex) => {
+        
+        // --- FIX 2: Map your server data to what the HTML expects ---
+        
+        // Use the first image from 'media_url' as the 'coverUrl'
+        const coverUrl = (highlight.media_url && highlight.media_url.length > 0)
+                       ? highlight.media_url[0]
+                       : 'https://placehold.co/100x100?text=...';
+        
+        // Use 'event_title' (from server) as the 'title'
+        const title = highlight.event_title || highlight.caption || 'Event Highlight';
+
+        return `
         <div class="flex flex-col items-center flex-shrink-0 cursor-pointer" onclick="openStoryViewer(${hIndex})">
             <div class="highlight-hexagon relative flex items-center justify-center">
-                <img src="${highlight.coverUrl}" alt="${highlight.title}" class="absolute inset-0 w-full h-full object-cover rounded-full" style="clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);">
+                <img src="${coverUrl}" alt="${title}" class="absolute inset-0 w-full h-full object-cover rounded-full" style="clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);">
             </div>
-            <span class="text-xs mt-2 text-gray-400 font-medium text-center max-w-[80px] truncate">${highlight.title}</span>
+            <span class="text-xs mt-2 text-gray-400 font-medium text-center max-w-[80px] truncate">${title}</span>
         </div>
-    `).join('');
+        `;
+    }).join('');
+
     if (typeof lucide !== 'undefined') lucide.createIcons();
+}function renderStory() {
+    clearTimeout(storyTimeout);
+    
+    // --- FIX 1: Use the correct global variable 'highlights' ---
+    const highlight = highlights[currentHighlightIndex];
+    
+    // --- FIX 2: Use 'media_url' (from server) instead of 'stories' ---
+    if (!highlight || !highlight.media_url || !highlight.media_url[currentStoryIndex]) {
+        closeStoryViewer();
+        return;
+    }
+    // 'storyUrl' is just the image URL string from the 'media_url' array
+    const storyUrl = highlight.media_url[currentStoryIndex];
+    
+    const storyHighlightTitleEl = document.getElementById('story-highlight-title');
+    if (storyHighlightTitleEl) {
+        // Use 'event_title' or 'caption' from the server data
+        storyHighlightTitleEl.textContent = highlight.event_title || highlight.caption || 'Highlight';
+    }
+    
+    const imageEl = document.getElementById('story-image');
+    if (imageEl) imageEl.src = storyUrl; // Use the direct URL
+    
+    const progressContainer = document.getElementById('story-progress-container');
+    if (progressContainer) {
+        // Use 'media_url.length' instead of 'stories.length'
+        progressContainer.innerHTML = highlight.media_url.map((url, index) => `
+            <div class="story-progress-bar">
+                <div class="story-progress-fill" id="story-fill-${index}"></div>
+            </div>
+        `).join('');
+    }
+    
+    // This logic below is mostly the same, just updated to use 'media_url.length'
+    for (let i = 0; i < highlight.media_url.length; i++) {
+        const fill = document.getElementById(`story-fill-${i}`);
+        if (i < currentStoryIndex) {
+            if (fill) fill.style.width = '100%';
+        } else {
+            if (fill) fill.style.width = '0';
+        }
+    }
+
+    const currentFill = document.getElementById(`story-fill-${currentStoryIndex}`);
+    if (currentFill) {
+        currentFill.style.transition = 'none'; 
+        currentFill.style.width = '0';
+        currentFill.offsetHeight; 
+        currentFill.style.transition = 'width 5s linear';
+        currentFill.style.width = '100%';
+
+        storyTimeout = setTimeout(nextStory, 5000); 
+    }
 }
 
 function openStoryViewer(highlightIndex, storyIndex = 0) {
+    // --- ADD THIS LOG ---
+    console.log(`openStoryViewer called: highlightIndex=${highlightIndex}, storyIndex=${storyIndex}`);
+    // --- END ADD ---
+
     currentHighlightIndex = highlightIndex;
     currentStoryIndex = storyIndex;
     const storyViewer = document.getElementById('story-viewer');
-    if (!storyViewer) return;
+    if (!storyViewer) {
+         console.error("Story viewer modal element (#story-viewer) not found in HTML!"); // Add error log
+        return;
+    }
     
     storyViewer.classList.remove('hidden');
-    storyViewer.classList.add('flex', 'flex-col');
+    storyViewer.classList.add('flex', 'flex-col'); // Make sure these classes correctly show the modal
     document.body.style.overflow = 'hidden';
     
-    renderStory();
+    renderStory(); // Call the function to display the content
 }
-
 function closeStoryViewer() {
     clearTimeout(storyTimeout);
     const storyViewer = document.getElementById('story-viewer');
@@ -990,13 +1088,15 @@ function renderStory() {
 }
 
 function nextStory() {
-    const highlight = eventHighlights[currentHighlightIndex];
+    // --- FIX 1: Use the correct global variable 'highlights' ---
+    const highlight = highlights[currentHighlightIndex];
     if (!highlight) return;
 
-    if (currentStoryIndex < highlight.stories.length - 1) {
+    // --- FIX 2: Use 'media_url.length' instead of 'stories.length' ---
+    if (currentStoryIndex < highlight.media_url.length - 1) {
         openStoryViewer(currentHighlightIndex, currentStoryIndex + 1);
     } else {
-        if (currentHighlightIndex < eventHighlights.length - 1) {
+        if (currentHighlightIndex < highlights.length - 1) {
             openStoryViewer(currentHighlightIndex + 1, 0);
         } else {
             closeStoryViewer();
@@ -1010,9 +1110,12 @@ function prevStory() {
     } else {
         if (currentHighlightIndex > 0) {
             const prevHighlightIndex = currentHighlightIndex - 1;
-            const prevHighlight = eventHighlights[prevHighlightIndex];
-            openStoryViewer(prevHighlightIndex, prevHighlight.stories.length - 1);
+            // --- FIX 1: Use the correct global variable 'highlights' ---
+            const prevHighlight = highlights[prevHighlightIndex];
+            // --- FIX 2: Use 'media_url.length' ---
+            openStoryViewer(prevHighlightIndex, prevHighlight.media_url.length - 1);
         } else {
+            // This just re-renders the first story
             renderStory();
         }
     }
@@ -1020,11 +1123,66 @@ function prevStory() {
 
 // --- UI Rendering Functions ---
 
+// REPLACE the old populatePromoGrid function with this one
 function populatePromoGrid() {
     const grid = document.getElementById('promo-slider-grid');
-    if (grid) grid.innerHTML = promotionalSlides.map(p => `<div class="promo-card rounded-xl shadow-xl overflow-hidden flex items-center p-6 cursor-pointer" style="background-image: url('${p.imageUrl}');"><div class="absolute inset-0 bg-black opacity-30 rounded-xl"></div><div class="relative z-10 max-w-xs"><h4 class="text-2xl font-extrabold text-white mb-1 leading-tight">${p.title}</h4><p class="text-gray-200 text-sm mb-4">${p.subtitle}</p><button class="px-4 py-2 bg-[var(--color-accent)] text-white font-semibold rounded-lg hover:bg-[#b01637] transition shadow-md">${p.buttonText}</button></div></div>`).join('');
-}
+    if (!grid) {
+        console.error("Promo slider grid container not found!");
+        return;
+    }
 
+    // --- FIX 1: Use the correct global variable 'promos' ---
+    if (!promos || promos.length === 0) {
+        // Provide a clearer message if no promos are found
+        grid.innerHTML = '<p class="text-gray-500 px-4 text-center w-full">No promotions available right now.</p>';
+        return;
+    }
+
+    grid.innerHTML = promos.map(promo => {
+        // --- FIX 2: Use correct field names from API ---
+        const imageUrl = promo.background_url || 'https://placehold.co/500x200/1f2937/4b5563?text=Special+Offer'; // Placeholder
+        const title = promo.title || 'Special Offer';
+        const subtitle = promo.subtitle || '';
+        const buttonText = promo.button_text || ''; // Default to empty if no text
+
+        // --- FIX 3: Determine button action based on link_type ---
+        let buttonAction = '';
+        // Check link_type from the database
+        if (promo.link_type === 'event' && promo.event_id) {
+            // If it links to an event, use showEventDetails
+            buttonAction = `onclick="showEventDetails(${promo.event_id}); return false;"`;
+        } else if (promo.link_type === 'url' && promo.button_link) {
+            // If it links to a URL, use window.open
+            // Basic check to ensure the link starts reasonably safe
+            const safeLink = promo.button_link.startsWith('http') || promo.button_link.startsWith('/')
+                           ? promo.button_link
+                           : '#'; // Fallback link
+            buttonAction = `onclick="window.open('${safeLink}', '_blank'); return false;"`;
+        }
+        // If no link_type or needed data, the button won't have an onclick action
+// Construct the HTML for the promo card
+      // Construct the HTML for the promo card
+        return `
+            <div class="promo-card min-w-[80vw] sm:min-w-[400px] md:min-w-[500px] h-48 sm:h-56 rounded-xl shadow-xl overflow-hidden relative flex items-center p-6 bg-cover bg-center group"
+                 style="background-image: url('${imageUrl}');">
+
+                <div class="absolute inset-0 bg-black opacity-40 group-hover:opacity-50 transition-opacity duration-300 rounded-xl"></div> 
+
+                <div class="relative z-10 max-w-xs">
+                    <h4 class="text-xl sm:text-2xl font-extrabold text-white mb-1 leading-tight">${title}</h4>
+                    <p class="text-gray-200 text-xs sm:text-sm mb-4">${subtitle}</p>
+
+                    ${buttonText ? `
+                        <button ${buttonAction} class="px-4 py-2 bg-[var(--color-accent)] text-white text-sm font-semibold rounded-lg hover:bg-[#b01637] transition shadow-md">
+                            ${buttonText}
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+// REPLACE your old populateCategoryGrid function with this 
 function populateCategoryGrid() {
     const grid = document.getElementById('category-list-grid');
     if (grid) {
@@ -1436,7 +1594,247 @@ function calculatePartyStreak() {
     
     streakCountEl.textContent = streak;
 }
+// ===============================
+// 🌐 PUBLIC VENUES FETCH FUNCTION
+// ===============================
 
+async function loadPublicVenues() {
+  try {
+    const response = await fetch('http://localhost:3000/api/public/venues');
+    const venues = await response.json();
+
+    const container = document.getElementById('venue-list-grid');
+    if (!container) {
+      console.error("❌ Missing #venue-list element in your HTML!");
+      return;
+    }
+
+    container.innerHTML = ''; // Clear old content
+
+    venues.forEach(v => {
+      // Choose main image
+      const imgSrc = v.image_url || (v.gallery && v.gallery[0]) || 'https://placehold.co/400x250';
+      
+      // Safely extract data
+      const details = v.details || {};
+      const description = details.description || 'No description available';
+      const address = details.address || v.location || 'Address not available';
+      const cost = v.cost_per_slot ? `₹${v.cost_per_slot}` : 'N/A';
+      const amenities = Array.isArray(v.amenities) ? v.amenities.join(', ') : 'N/A';
+      const capacity = v.capacity || 'Not specified';
+
+      // Create card
+      const card = document.createElement('div');
+      card.classList.add('venue-card');
+      card.innerHTML = `
+        <img src="${imgSrc}" alt="${v.name}" class="venue-image">
+        <div class="venue-info">
+          <h3>${v.name}</h3>
+          <p><strong>Location:</strong> ${address}</p>
+          <p><strong>Description:</strong> ${description}</p>
+          <p><strong>Amenities:</strong> ${amenities}</p>
+          <p><strong>Capacity:</strong> ${capacity}</p>
+          <p><strong>Cost per Slot:</strong> ${cost}</p>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
+  } catch (error) {
+    console.error('⚠️ Error loading public venues:', error);
+  }
+}
+
+// Add this new function to your script.js file
+
+
+
+// REPLACE your old populatePartnersGrid function with this one
+
+// REPLACE your old populatePartnersGrid function with this new one
+// REPLACE your old populatePartnersGrid function with this new one
+// REPLACE your old populatePartnersGrid function with this new one
+
+// REPLACE your old populatePartnersGrid function with this new one
+
+function populatePartnersGrid() {
+    const container = document.getElementById('partners-container');
+    if (!container) {
+        console.error('Partners container not found!');
+        return;
+    }
+
+    if (!partners || partners.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center">No partners to display.</p>';
+        return;
+    }
+
+    // 1. Create the HTML for each logo (as a circle)
+    const partnerHtmlList = partners.map(partner => {
+        const logoUrl = partner.logo_url || 'https://placehold.co/150x80?text=Partner';
+        
+        const logoImgTag = `
+            <img src="${logoUrl}" alt="${partner.name}" 
+                 class="h-full w-full object-contain">
+        `;
+
+        const logoCircleHtml = `
+            <div class="h-20 w-20 rounded-full bg-white p-2
+                        flex items-center justify-center">
+                ${logoImgTag}
+            </div>
+        `;
+
+        // Add 'flex-shrink-0' to stop them from squishing
+        if (partner.website_url) {
+            return `
+                <a href="${partner.website_url}" target="_blank" 
+                   rel="noopener noreferrer" 
+                   class="partner-link mx-4 transition-transform duration-300 hover:scale-110 flex-shrink-0"
+                   title="${partner.name}">
+                    ${logoCircleHtml}
+                </a>
+            `;
+        } else {
+            return `
+                <div class="partner-link mx-4 transition-transform duration-300 hover:scale-110 flex-shrink-0" title="${partner.name}">
+                    ${logoCircleHtml}
+                </div>
+            `;
+        }
+    });
+
+    // 2. Create the inner slider div (NO DUPLICATION)
+    // We use a new class 'auto-scroller'
+    const sliderHtml = `
+        <div class="flex items-center auto-scroller">
+            ${partnerHtmlList.join('')}
+        </div>
+    `;
+
+    // 3. Set the container's HTML
+    container.innerHTML = sliderHtml;
+
+    // 4. Add hover-to-pause
+    const slider = container.querySelector('.auto-scroller');
+    if (slider) {
+        container.addEventListener('mouseenter', () => slider.style.animationPlayState = 'paused');
+        container.addEventListener('mouseleave', () => slider.style.animationPlayState = 'running');
+    }
+}
+
+
+// Add this new function to your script.js file
+
+// REPLACE your old populateGalleryGrid function with this new one
+// REPLACE your old populateGalleryGrid function with this new one
+// REPLACE your old populateGalleryGrid function with this new one
+
+function populateGalleryGrid() {
+    const container = document.getElementById('gallery-container');
+    if (!container) {
+        console.error('Gallery container not found!');
+        return;
+    }
+
+    // 1. Group gallery items by caption or event title
+    const groupedGalleries = {};
+    galleries.forEach(item => {
+        const groupName = item.caption || item.event_title || 'General Gallery';
+        if (!groupedGalleries[groupName]) {
+            groupedGalleries[groupName] = [];
+        }
+        if (item.image_urls && item.image_urls.length > 0) {
+            groupedGalleries[groupName].push(...item.image_urls);
+        }
+    });
+
+    if (Object.keys(groupedGalleries).length === 0) {
+        container.innerHTML = '<p class="text-gray-500 px-4">No gallery images to display.</p>';
+        return;
+    }
+
+    container.innerHTML = ''; // Clear loading message
+
+    // 2. Build HTML for each group and append horizontally
+    for (const groupName in groupedGalleries) {
+        const images = groupedGalleries[groupName];
+        if (images.length === 0) continue;
+
+        // Map images to individual image cards
+        const imageSliderHtml = images.map(imageUrl => {
+            return `
+               <div class="min-w-[200px] h-36 rounded-xl overflow-hidden shadow-md relative flex-shrink-0 group bg-gray-700 cursor-pointer" 
+                     onclick="openLightbox('${imageUrl}')">
+                    <img src="${imageUrl}" alt="${groupName}" 
+                         class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                         onerror="this.parentElement.innerHTML = '<p class=\'text-xs text-gray-400 p-2 text-center\'>Image<br>Not Found</p>';"> 
+                </div>
+            `; // Added better error display
+        }).join('');
+
+        // Create the wrapper div FOR THIS ENTIRE GROUP
+        const groupWrapper = document.createElement('div');
+        // FIX: Added flex-shrink-0 and margin (mx-2)
+        groupWrapper.className = 'gallery-group flex-shrink-0 mx-2';
+        groupWrapper.innerHTML = `
+            <h3 class="text-xl font-bold text-white mb-3">${groupName}</h3>
+            
+            <div class="flex overflow-x-scroll horizontal-scroll-container space-x-4 pb-2">
+                ${imageSliderHtml}
+            </div>
+        `;
+        
+        // Append this group wrapper to the main horizontal container
+        container.appendChild(groupWrapper); 
+    }
+}
+
+// Add these two functions to script.js
+
+function openLightbox(imageUrl) {
+    const modal = document.getElementById('lightbox-modal');
+    const imageElement = document.getElementById('lightbox-image');
+    if (!modal || !imageElement) return;
+
+    imageElement.src = imageUrl; // Set the image source
+    modal.classList.add('flex'); // Show the modal
+    modal.classList.remove('hidden'); 
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+}
+
+function closeLightbox() {
+    const modal = document.getElementById('lightbox-modal');
+    if (!modal) return;
+
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = ''; // Restore background scrolling
+}
+// Add this function to script.js
+
+function requestOrganizerRegistration() {
+    // --- **IMPORTANT:** Replace with the Super Admin's actual email address ---
+    const adminEmail = "your-super-admin-email@example.com"; 
+    // --- End Replace ---
+
+    const subject = "New Organizer Registration Request - Party in Bangalore";
+    
+    // Pre-fill the email body asking for necessary info
+    const body = `Hello Admin,\n\nI would like to register as an event organizer on Party in Bangalore.\n\nPlease provide details below:\n\n- Organizer/Company Name: [Your Name/Company]\n- Contact Person: [Your Name]\n- Contact Email: [Your Email]\n- Contact Phone: [Your Phone Number]\n- Brief Description of Events: [e.g., DJ Nights, Live Music Concerts, etc.]\n\nThank you!`;
+
+    // Create the mailto link
+    const mailtoLink = `mailto:${adminEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    // Open the user's email client
+    window.location.href = mailtoLink;
+
+    // Add a log to see if the function is called
+    console.log("DEBUG: requestOrganizerRegistration function called. Attempting to open mailto link:", mailtoLink);
+
+    // Optional: Show a confirmation message
+    alert("Please fill in your details in the email draft that opens to request registration.");
+}
 
 // --- Main Initialization Logic (The Core Fix) ---
 
@@ -1454,6 +1852,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     geminiLoading = document.getElementById('gemini-loading');
     geminiResponseText = document.getElementById('gemini-response-text');
 
+    // Add listener for the lightbox close button
+    const closeLightboxButton = document.getElementById('close-lightbox-btn');
+    if (closeLightboxButton) {
+        closeLightboxButton.addEventListener('click', closeLightbox);
+    }
+    
+    // Also close lightbox if clicking the dark background
+    const lightboxModal = document.getElementById('lightbox-modal');
+    if (lightboxModal) {
+        lightboxModal.addEventListener('click', (event) => {
+            // Check if the click was directly on the modal backdrop itself
+            if (event.target === lightboxModal) {
+                closeLightbox();
+            }
+        });
+    }
+
     // Initialize Lucide Icons (must run AFTER all HTML is loaded)
     if (typeof lucide !== 'undefined') lucide.createIcons();
     
@@ -1467,7 +1882,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     populatePromoGrid();
     populateVenueGrid();
     renderEventHighlights();
-
+    populatePartnersGrid();
+    populateGalleryGrid();
+    calculatePartyStreak();
+    await loadPublicVenues(); // Load public venues from the new API endpoint
     // 3. Set initial view
     navigateTo('home');
 // --- Setup Your Other Event Listeners ---

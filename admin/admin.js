@@ -41,8 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1);
     const openModal = () => modalBackdrop.classList.remove('hidden');
-    const closeModal = () => modalBackdrop.classList.add('hidden');
-
+   const closeModal = () => modalBackdrop.classList.add('hidden');
+      
     const showToast = (message, type = 'success') => {
         const toastContainer = document.getElementById('toast-container');
         const toastMessage = document.getElementById('toast-message');
@@ -84,43 +84,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const displayHour = currentHour % 12 === 0 ? 12 : currentHour % 12; 
         container.innerHTML = `<select name="hour" class="time-select">${Array.from({length: 12}, (_, i) => `<option value="${i+1}" ${i+1 === displayHour ? 'selected' : ''}>${i+1}</option>`).join('')}</select><select name="minute" class="time-select">${Array.from({length: 60}, (_, i) => `<option value="${i.toString().padStart(2,'0')}" ${i === parseInt(m) ? 'selected' : ''}>${i.toString().padStart(2,'0')}</option>`).join('')}</select><select name="period" class="time-select"><option ${currentPeriod==='AM'?'selected':''}>AM</option><option ${currentPeriod==='PM'?'selected':''}>PM</option></select>`; 
     };
-
-    const setupUploader = (dropzone, input, previewsContainer, dataStore) => { 
-        const renderPreviews = () => { 
-            previewsContainer.innerHTML = (dataStore.files || []).map((src, index) => 
+const setupUploader = (dropzone, input, previewsContainer, dataStore) => {
+        const renderPreviews = () => {
+            // --- ADD LOGS HERE ---
+            console.log("DEBUG: renderPreviews called.");
+            console.log("DEBUG: dataStore.files:", dataStore.files);
+            
+            const htmlString = (dataStore.files || []).map((src, index) =>
                 `<div class="preview-image-container"><img src="${src}" class="w-full h-24 object-cover rounded-md"><button data-index="${index}" class="remove-preview-btn p-0.5"><i data-lucide="x" class="w-4 h-4 text-red-500"></i></button></div>`
-            ).join(''); 
-            lucide.createIcons(); 
-        }; 
-        const handleFiles = async (files) => { 
-            for (const file of files) { 
-                if (!file.type.startsWith('image/')) continue; 
-                const url = 'https://api.cloudinary.com/v1_1/dhwwwuzdc/upload';
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('upload_preset', 'unsigned_preset'); 
-                formData.append('folder', 'uploader'); 
-                try {
-                    const res = await fetch(url, { method: 'POST', body: formData });
-                    const data = await res.json();
-                    if (data.secure_url) {
-                        if (dataStore.isMulti) dataStore.files.push(data.secure_url); else dataStore.files = [data.secure_url];
-                        renderPreviews();
-                    } else { alert('Image upload failed: ' + (data.error?.message || 'Unknown error')); }
-                } catch (err) { alert('Image upload error: ' + err.message); }
-            } 
-        }; 
-        dropzone.addEventListener('click', () => input.click()); 
-        input.addEventListener('change', () => handleFiles(input.files)); 
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => dropzone.addEventListener(ev, e => {e.preventDefault(); e.stopPropagation()})); 
-        ['dragenter', 'dragover'].forEach(ev => dropzone.addEventListener(ev, () => dropzone.classList.add('drag-over'))); 
-        ['dragleave', 'drop'].forEach(ev => dropzone.addEventListener(ev, () => dropzone.classList.remove('drag-over'))); 
-        dropzone.addEventListener('drop', e => handleFiles(e.dataTransfer.files)); 
-        previewsContainer.addEventListener('click', e => { 
-            const btn = e.target.closest('.remove-preview-btn'); 
-            if (btn) { dataStore.files.splice(parseInt(btn.dataset.index), 1); renderPreviews(); } 
-        }); 
-        renderPreviews(); 
+            ).join('');
+            
+            console.log("DEBUG: Generated HTML:", htmlString);
+            console.log("DEBUG: Target previewsContainer:", previewsContainer);
+            // --- END LOGS ---
+
+            previewsContainer.innerHTML = htmlString; // Set the HTML
+            
+            try { // Add error handling for Lucide
+                 lucide.createIcons();
+            } catch (e) {
+                 console.error("Lucide error:", e);
+            }
+        };
+        // ... rest of setupUploader ...
+        renderPreviews();
     };
 
     const addVenueSlot = (container, slotData = {}) => {
@@ -180,212 +167,347 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===============================================
     // FORM SETUP & SUBMISSION LOGIC
     // ===============================================
-    const setupForm = async (type, data) => {
-        modalTitle.textContent = data ? `Edit ${capitalize(type)}` : `Add New ${capitalize(type)}`;
-        const template = document.getElementById(`${type}-form-template`);
-        const form = template.cloneNode(true);
-        form.id = `active-${type}-form`;
-        modalFormContainer.innerHTML = '';
-        modalFormContainer.appendChild(form);
-        activeFormUploaderData = {};
+    // REPLACE your entire old setupForm function with this new one:
 
-        if (type === 'event') {
-            const [venues, organizers, categories] = await Promise.all([
-                apiFetch('venues'),
-                apiFetch('users'),
-                apiFetch('categories')
-            ]);
-            const venueSelect = form.querySelector('[name="venue_id"]');
-            const organizerSelect = form.querySelector('[name="organizer_id"]');
-            const categorySelect = form.querySelector('[name="category"]');
-            if (venueSelect) venueSelect.innerHTML = venues.map(v => `<option value="${v.id}">${v.name}</option>`).join('');
-            if (organizerSelect) organizerSelect.innerHTML = organizers.map(o => `<option value="${o.id}">${o.name}</option>`).join('');
-            if (categorySelect) categorySelect.innerHTML = categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+const setupForm = async (type, data) => {
+   
+    modalTitle.textContent = data ? `Edit ${capitalize(type)}` : `Add New ${capitalize(type)}`;
+    const template = document.getElementById(`${type}-form-template`);
+    const form = template.cloneNode(true);
+    form.id = `active-${type}-form`;
+    modalFormContainer.innerHTML = '';
+    modalFormContainer.appendChild(form);
+    activeFormUploaderData = {};
+
+    if (type === 'event') {
+        const [venues, organizers, categories] = await Promise.all([
+            apiFetch('venues'),
+            apiFetch('users'),
+            apiFetch('categories')
+        ]);
+        const venueSelect = form.querySelector('[name="venue_id"]');
+        const organizerSelect = form.querySelector('[name="organizer_id"]');
+        const categorySelect = form.querySelector('[name="category"]');
+        if (venueSelect) venueSelect.innerHTML = venues.map(v => `<option value="${v.id}">${v.name}</option>`).join('');
+        if (organizerSelect) organizerSelect.innerHTML = organizers.map(o => `<option value="${o.id}">${o.name}</option>`).join('');
+        if (categorySelect) categorySelect.innerHTML = categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+    }
+  
+    if (type === 'gallery' || type === 'highlight' || type === 'promo') {
+        const events = await apiFetch('events');
+        const eventSelect = form.querySelector('[name="eventId"]');
+
+        if (eventSelect && events) {
+            eventSelect.innerHTML = events.map(e => 
+                `<option value="${e.id}" ${data && data.event_id == e.id ? 'selected' : ''}>${e.title}</option>`
+            ).join('');
         }
-      
-        if (type === 'gallery' || type === 'highlight' || type === 'promo') {
-            const events = await apiFetch('events');
-            const eventSelect = form.querySelector('[name="eventId"]');
+    }
+    
+    if (type === 'promo') {
+        const linkTypeSelect = form.querySelector('[name="linkType"]');
+        const eventContainer = form.querySelector('#promo-event-link-container');
+        const urlContainer = form.querySelector('#promo-custom-url-container');
+        const eventSelect = form.querySelector('[name="eventId"]');
 
+        const togglePromoLinkFields = () => {
+            if (linkTypeSelect.value === 'event') {
+                eventContainer.classList.remove('hidden');
+                urlContainer.classList.add('hidden');
+            } else { // 'url'
+                eventContainer.classList.add('hidden');
+                urlContainer.classList.remove('hidden');
+            }
+        };
+
+        apiFetch('events').then(events => {
             if (eventSelect && events) {
                 eventSelect.innerHTML = events.map(e => 
                     `<option value="${e.id}" ${data && data.event_id == e.id ? 'selected' : ''}>${e.title}</option>`
                 ).join('');
             }
+        });
+
+        linkTypeSelect.addEventListener('change', togglePromoLinkFields);
+
+        if (data && data.link_type) {
+            linkTypeSelect.value = data.link_type;
         }
-        
+        togglePromoLinkFields();
+    }
 
-// ... (your existing 'if' blocks for 'event', 'gallery', etc.) ...
+    if (type === 'category') {
+        form.querySelector('[name="icon"]').innerHTML = ICONS.map(icon => `<option value="${icon}">${capitalize(icon)}</option>`).join('');
+    }
 
-
-        if (type === 'promo') {
-            const linkTypeSelect = form.querySelector('[name="linkType"]');
-            const eventContainer = form.querySelector('#promo-event-link-container');
-            const urlContainer = form.querySelector('#promo-custom-url-container');
-            const eventSelect = form.querySelector('[name="eventId"]');
-
-            // 1. Function to show/hide the fields based on selection
-            const togglePromoLinkFields = () => {
-                if (linkTypeSelect.value === 'event') {
-                    eventContainer.classList.remove('hidden');
-                    urlContainer.classList.add('hidden');
-                } else { // 'url'
-                    eventContainer.classList.add('hidden');
-                    urlContainer.classList.remove('hidden');
-                }
-            };
-
-            // 2. Fetch events and populate the event dropdown
-            apiFetch('events').then(events => {
-                if (eventSelect && events) {
-                    eventSelect.innerHTML = events.map(e => 
-                        `<option value="${e.id}" ${data && data.event_id == e.id ? 'selected' : ''}>${e.title}</option>`
-                    ).join('');
-                }
+    if (type === 'venue') {
+        const slotsContainer = form.querySelector('#venue-slots-container');
+        const addSlotBtn = form.querySelector('#add-venue-slot-btn');
+        if (addSlotBtn && slotsContainer) {
+            addSlotBtn.addEventListener('click', () => {
+                addVenueSlot(slotsContainer);
             });
+        }
+    }
 
-            // 3. Listen for changes on the main dropdown
-            linkTypeSelect.addEventListener('change', togglePromoLinkFields);
-
-            // 4. Set the initial state correctly when editing an existing promo
-            if (data && data.link_type) {
-                linkTypeSelect.value = data.link_type;
+    // --- START FIX 1: DATA LOADING ---
+    // This new block correctly maps your DB data to your HTML form names
+    if (data) {
+        // 1. Loop and fill all simple, matching fields (name, capacity, id)
+        for (const key in data) {
+            const input = form.querySelector(`[name="${key}"]`);
+            if (input && data[key] !== null) {
+                if (key === 'amenities' && Array.isArray(data[key])) {
+                    input.value = data[key].join(', '); // Convert amenities array to string
+                } else if (typeof data[key] !== 'object' && !Array.isArray(data[key])) {
+                    input.value = data[key]; // Handles name, capacity, id
+                }
             }
-            togglePromoLinkFields(); // Call once to set the initial view
         }
 
-        if (type === 'category') {
-            form.querySelector('[name="icon"]').innerHTML = ICONS.map(icon => `<option value="${icon}">${capitalize(icon)}</option>`).join('');
-        }
-
-        // ✅ FIX: Attach listener for "Add Booking Slot" button
+        // 2. Manually map all mismatched fields
         if (type === 'venue') {
-            const slotsContainer = form.querySelector('#venue-slots-container');
-            const addSlotBtn = form.querySelector('#add-venue-slot-btn');
-            if (addSlotBtn && slotsContainer) {
-                addSlotBtn.addEventListener('click', () => {
-                    addVenueSlot(slotsContainer);
-                });
+            // Map DB 'location' to HTML 'address'
+            if (data.location) {
+                const addressInput = form.querySelector('[name="address"]');
+                if (addressInput) addressInput.value = data.location;
             }
-        }
-
-        if (data) {
-            for (const key in data) {
-                const input = form.querySelector(`[name="${key}"]`);
-                if (input && data[key] !== null) {
-                    if (input.type === 'date' && data[key]) {
-                        input.value = new Date(data[key]).toISOString().split('T')[0];
-                    } else {
-                        input.value = data[key];
-                    }
+            // Map DB 'cost_per_slot' to HTML 'costPerSlot'
+            if (data.cost_per_slot) {
+                const costInput = form.querySelector('[name="costPerSlot"]');
+                if (costInput) costInput.value = data.cost_per_slot;
+            }
+            
+            // Map DB 'details' object to HTML fields
+            if (data.details) {
+                // Map DB 'details.google_maps_url' to HTML 'mapUrl'
+                if (data.details.google_maps_url) {
+                    const mapInput = form.querySelector('[name="mapUrl"]');
+                    if (mapInput) mapInput.value = data.details.google_maps_url;
+                }
+                // Map DB 'details.available_equipment' to HTML 'equipment'
+                if (data.details.available_equipment) {
+                    const equipInput = form.querySelector('[name="equipment"]');
+                    if (equipInput) equipInput.value = data.details.available_equipment;
                 }
             }
         }
+    }
 
-        if (type === 'event') {
-            form.querySelectorAll('[data-time-group]').forEach(group => {
-                const timeKey = group.dataset.timeGroup;
-                createTimePicker(group, data ? data[timeKey] : null);
-            });
-        }
-        
-        if (type === 'venue' && data && data.available_slots) {
-            const slotsContainer = form.querySelector('#venue-slots-container');
-            data.available_slots.forEach(slot => addVenueSlot(slotsContainer, slot));
-        }
+    // // --- START FIX for Promo Button Text ---
+            if (type === 'promo') { // <--- Check if this block is entered
+                console.log("DEBUG: Handling Promo Button Text. Data:", data); 
+                if (data.button_text) {
+                    const buttonTextInput = form.querySelector('[name="buttonText"]');
+                    console.log("DEBUG: Found button text input:", buttonTextInput); // <--- Check if input is found
+                    if (buttonTextInput) {
+                        console.log("DEBUG: Setting button text value to:", data.button_text); // <--- Check the value
+                        buttonTextInput.value = data.button_text;
+                    }
+                } else {
+                     console.log("DEBUG: data.button_text is missing or empty.");
+                }
+            }
+            // --- END FIX ---
 
+    if (type === 'event') {
+        form.querySelectorAll('[data-time-group]').forEach(group => {
+            const timeKey = group.dataset.timeGroup;
+            createTimePicker(group, data ? data[timeKey] : null);
+        });
+    }
+    
+    if (type === 'venue' && data && data.available_slots) {
+        const slotsContainer = form.querySelector('#venue-slots-container');
+        data.available_slots.forEach(slot => addVenueSlot(slotsContainer, slot));
+    }
+    
+    // --- START FIX 2: UPLOADER LOADING ---
+    // This block correctly maps your DB photo arrays to your HTML data-dropzone names
+   // REPLACE the old [data-dropzone] loop with this one
         form.querySelectorAll('[data-dropzone]').forEach(dz => {
-            const key = dz.dataset.dropzone;
-            const input = dz.nextElementSibling;
-            const previews = input.nextElementSibling;
-            const dbKey = key.replace(/([A-Z])/g, "_$1").toLowerCase();
-            const files = (data && data[dbKey]) ? [...data[dbKey]] : [];
-            activeFormUploaderData[key] = { files: files, isMulti: input.multiple };
+            const key = dz.dataset.dropzone; // e.g., "backgroundUrl"
+            const input = dz.nextElementSibling; // The <input type="file">
+            const previews = input.nextElementSibling; // The previews container
+            let dbKey = null; // Will store the matching database key (e.g., "background_url")
+            let files = []; // Will store the files/URLs for the uploader state
+
+            // --- Determine the correct DB key ---
+            switch (key) {
+                case 'venueGallery':     dbKey = 'gallery'; break;
+                case 'eventSetupImages': dbKey = 'event_photos'; break;
+                case 'menuImages':       dbKey = 'menu'; break;
+                case 'imageUrls':        dbKey = 'image_urls'; break; // For gallery form
+                case 'posterImages':     dbKey = 'poster_images'; break; // For event form
+                case 'mediaUrl':         dbKey = 'media_url'; break; // For highlight form
+                
+              // --- FIX: Specific handling for Promo background ---
+              // --- FIX: Specific handling for Promo background ---
+                case 'backgroundUrl':    
+                    dbKey = 'background_url'; 
+                    console.log("DEBUG: Handling Promo Background. Data:", data); 
+                    
+                    let urlToLoad = null;
+                    if (data && data[dbKey]) {
+                        // Try to handle existing bad format {"..."}
+                        if (typeof data[dbKey] === 'string' && data[dbKey].startsWith('{"') && data[dbKey].endsWith('"}')) {
+                            try {
+                                // Extract the URL from inside {"..."}
+                                urlToLoad = data[dbKey].substring(2, data[dbKey].length - 2); 
+                                console.log("DEBUG: Extracted URL from bad format:", urlToLoad);
+                            } catch (e) { console.error("Error parsing bad background URL format", e); }
+                        } 
+                        // Handle correct string format
+                        else if (typeof data[dbKey] === 'string') {
+                            urlToLoad = data[dbKey];
+                            console.log("DEBUG: Found background URL (correct format):", urlToLoad); 
+                        }
+                    }
+
+                    if (urlToLoad) {
+                        files = [urlToLoad]; // Put the single URL into an array
+                    } else {
+                        console.log("DEBUG: data.background_url is missing or invalid.");
+                        files = [];
+                    }
+                    break;
+                 // --- END FIX ---
+
+                 // --- FIX: Specific handling for Partner logo ---
+                 case 'logoUrl':
+                     dbKey = 'logo_url';
+                     if (data && data[dbKey] && typeof data[dbKey] === 'string') {
+                         files = [data[dbKey]];
+                     } else {
+                         files = [];
+                     }
+                     break;
+                 // --- END FIX ---
+
+                default:
+                    // Fallback (might work for simple cases)
+                    dbKey = key.replace(/([A-Z])/g, "_$1").toLowerCase();
+                    if (data && data[dbKey] && Array.isArray(data[dbKey])) {
+                         files = [...data[dbKey]];
+                    } else if (data && data[dbKey] && typeof data[dbKey] === 'string') {
+                        // Handle potential single string fallback? Risky.
+                         files = [data[dbKey]];
+                    } else {
+                         files = [];
+                    }
+                    console.warn(`Uploader mapping fallback used for key: ${key} -> ${dbKey}`);
+            }
+
+            // --- Setup uploader state ---
+            // 'isMulti' is true if the file input allows multiple files
+            activeFormUploaderData[key] = { files: files, isMulti: input.multiple }; 
             setupUploader(dz, input, previews, activeFormUploaderData[key]);
         });
-        
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+    // --- END FIX 2 ---
+    
+   // --- START: Assign submit handler using .onsubmit ---
+        form.onsubmit = async (e) => {
+            e.preventDefault(); // Prevent default form submission
+            
+            // 'data' object (for edits) is available here directly from setupForm's scope
+            const originalData = data || null; 
+            
+            console.log(`onsubmit handler running for type: ${type}`);
+
+            // --- Gather Form Data ---
             const formData = new FormData(form);
             const itemData = Object.fromEntries(formData.entries());
+            // --- ADD THIS LOG ---
+            console.log("DEBUG: Event ID selected in form:", itemData.eventId); 
+            // --- END LOG ---
 
-            for (const key in activeFormUploaderData) {
-                const dbKey = key.replace(/([A-Z])/g, "_$1").toLowerCase();
-                itemData[dbKey] = activeFormUploaderData[key].files;
+            // --- Process Uploaded Images ---
+            for (const uploaderKey in activeFormUploaderData) {
+                let targetDbKey = null;
+                 if (type === 'gallery' && uploaderKey === 'imageUrls') { targetDbKey = 'image_urls'; } 
+                 else if (type === 'event' && uploaderKey === 'posterImages') { targetDbKey = 'poster_images'; }
+                 // *** Add your venue mappings here if needed ***
+                 // else if (type === 'venue' && uploaderKey === 'images') { targetDbKey = 'gallery'; } 
+                 // else if (type === 'venue' && uploaderKey === 'eventSetupImages') { targetDbKey = 'event_photos'; }
+                 // else if (type === 'venue' && uploaderKey === 'menuImages') { targetDbKey = 'menu'; }
+                 else { targetDbKey = uploaderKey.replace(/([A-Z])/g, "_$1").toLowerCase(); }
+
+                 if (targetDbKey) {
+                    itemData[targetDbKey] = activeFormUploaderData[uploaderKey].files || [];
+                 }
             }
 
+            // --- Process Time Pickers ---
             form.querySelectorAll('[data-time-group]').forEach(group => {
-                if (!group.closest('.relative.border')) { // Exclude slot time pickers
+                 if (!group.closest('.relative.border')) { 
                     const selects = group.querySelectorAll('select');
                     let hour = parseInt(selects[0].value, 10);
                     if (selects[2].value === 'PM' && hour !== 12) hour += 12;
                     if (selects[2].value === 'AM' && hour === 12) hour = 0;
                     itemData[group.dataset.timeGroup] = `${hour.toString().padStart(2, '0')}:${selects[1].value}`;
-                }
+                 }
             });
-
-            if (type === 'venue') {
-                itemData.available_slots = [];
-                form.querySelectorAll('#venue-slots-container > div').forEach(slotEl => {
+            
+            // --- Process Venue-Specific Data ---
+             if (type === 'venue') {
+                 // (Ensure all your venue-specific logic is correctly placed here)
+                 itemData.available_slots = [];
+                 form.querySelectorAll('#venue-slots-container > div').forEach(slotEl => { /* ... get slot data ... */ 
                     const slotId = slotEl.querySelector('[name^="slot_day_"]').name.split('_')[2];
-                    const startGroup = slotEl.querySelector(`[data-time-group="slot_start_${slotId}"]`);
-                    const endGroup = slotEl.querySelector(`[data-time-group="slot_end_${slotId}"]`);
-                    const getTime = (group) => {
+                     const startGroup = slotEl.querySelector(`[data-time-group="slot_start_${slotId}"]`);
+                     const endGroup = slotEl.querySelector(`[data-time-group="slot_end_${slotId}"]`);
+                     const getTime = (group) => { /* ... (your getTime logic) ... */ 
                         if (!group) return null;
                         const selects = group.querySelectorAll('select');
                         let hour = parseInt(selects[0].value, 10);
                         if (selects[2].value === 'PM' && hour !== 12) hour += 12;
                         if (selects[2].value === 'AM' && hour === 12) hour = 0;
                         return `${hour.toString().padStart(2, '0')}:${selects[1].value}`;
-                    };
-                    itemData.available_slots.push({
+                     };
+                     itemData.available_slots.push({
                         day: slotEl.querySelector(`[name="slot_day_${slotId}"]`).value,
                         name: slotEl.querySelector(`[name="slot_name_${slotId}"]`).value,
                         start: getTime(startGroup),
                         end: getTime(endGroup)
-                    });
-                });
-                
-                if (itemData.amenities && typeof itemData.amenities === 'string') {
+                     });
+                 });
+                 if (itemData.amenities && typeof itemData.amenities === 'string') { /* ... amenities logic ... */ 
                     itemData.amenities = itemData.amenities.split(',').map(s => s.trim()).filter(Boolean);
-                } else if (!itemData.amenities) { // Ensure it's at least an empty array
-                    itemData.amenities = [];
-                }
-            }
-                        // Handle 'details' field (assuming it's a JSON object string)
-            if (itemData.details && typeof itemData.details === 'string') {
-                try {
-                    // Try to parse the string as a JSON object
-                    itemData.details = JSON.parse(itemData.details);
-                } catch (e) {
-                    console.error('Invalid JSON syntax for details field:', itemData.details);
-                    showToast('Error: Details field must contain valid JSON format (e.g., {"key": "value"}).', 'error');
-                    return; // Stop the form submission
-                }
-            }
-
-            // Handle 'menu' field (same logic)
-            if (itemData.menu && typeof itemData.menu === 'string') {
-                try {
-                    // Try to parse the string as a JSON object
-                    itemData.menu = JSON.parse(itemData.menu);
-                } catch (e) {
-                    console.error('Invalid JSON syntax for menu field:', itemData.menu);
-                    showToast('Error: Menu field must contain valid JSON format (e.g., {"items": "...", "pages": 2}).', 'error');
-                    return; // Stop the form submission
-                }
-            }
-
-            if (itemData.id) {
+                 } else if (!Array.isArray(itemData.amenities)) { itemData.amenities = []; }
+                 itemData.location = itemData.address; itemData.cost_per_slot = itemData.costPerSlot;
+                 itemData.gallery = itemData.images; itemData.event_photos = itemData.eventSetupImages; itemData.menu = itemData.menuImages;
+                 itemData.details = {};
+                 if (itemData.mapUrl) { itemData.details.google_maps_url = itemData.mapUrl; }
+                 if (itemData.equipment) { itemData.details.available_equipment = itemData.equipment; }
+                 delete itemData.address; delete itemData.costPerSlot; delete itemData.images;
+                 delete itemData.eventSetupImages; delete itemData.menuImages; delete itemData.mapUrl; delete itemData.equipment;
+                 if (!itemData.gallery) itemData.gallery = []; if (!itemData.event_photos) itemData.event_photos = [];
+                 if (!itemData.menu) itemData.menu = []; if (!itemData.available_slots) itemData.available_slots = [];
+             }
+             
+             // --- Handle ID for Edit vs. Create ---
+             if (itemData.id) {
                 itemData.id = parseInt(itemData.id, 10);
-            }
+                if (isNaN(itemData.id)) { delete itemData.id; }
+             }
+             // Use 'originalData' which comes from the setupForm scope
+             if (originalData && originalData.id && !itemData.id) {
+                itemData.id = originalData.id; 
+             }
+             
+             console.log("--- FINAL PAYLOAD (.onsubmit) ---");
+             console.log("Type:", type);
+             console.log("Data:", itemData); 
 
-            await saveItem(type, itemData);
-        });
-        
+             await saveItem(type, itemData);
+        };
+        // --- END: Assign submit handler using .onsubmit ---
+
         openModal();
         lucide.createIcons();
-    };
+    }; // End of setupForm function
+
+
 
     // ===============================================
     // USER AUTHENTICATION & INITIALIZATION
@@ -450,7 +572,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // ✅ FIX: Using poster_images array and a fallback image
     window.renderEvents = createRenderFn('event', 'admin-event-list', e => `<div class="list-item flex items-center justify-between p-4 rounded-lg"><div class="flex items-center"><img src="${(e.poster_images && e.poster_images.length > 0) ? e.poster_images[0] : 'https://placehold.co/48x48/1a1a1a/ffffff?text=Img'}" class="w-12 h-12 object-cover rounded-md"><p class="font-semibold text-header ml-4">${e.title}</p></div><div class="flex items-center space-x-3"><button class="action-btn" data-type="event" data-id="${e.id}" data-action="edit"><i data-lucide="edit"></i></button><button class="action-btn" data-type="event" data-id="${e.id}" data-action="delete"><i data-lucide="trash-2"></i></button></div></div>`);
-    window.renderVenues = createRenderFn('venue', 'admin-venue-list', v => `<div class="list-item flex items-center justify-between p-4 rounded-lg"><div class="flex items-center"><img src="${(v.images && v.images.length > 0) ? v.images[0] : 'https://placehold.co/48x48/1a1a1a/ffffff?text=Img'}" class="w-12 h-12 object-cover rounded-md"><p class="font-semibold text-header ml-4">${v.name}</p></div><div class="flex items-center space-x-3"><button class="action-btn" data-type="venue" data-id="${v.id}" data-action="edit"><i data-lucide="edit"></i></button><button class="action-btn" data-type="venue" data-id="${v.id}" data-action="delete"><i data-lucide="trash-2"></i></button></div></div>`);
+   window.renderVenues = createRenderFn('venue', 'admin-venue-list', v => `<div class="list-item flex items-center justify-between p-4 rounded-lg"><div class="flex items-center"><img src="${v.image_url || 'https://placehold.co/48x48/1a1a1a/ffffff?text=Img'}" class="w-12 h-12 object-cover rounded-md"><p class="font-semibold text-header ml-4">${v.name}</p></div><div class="flex items-center space-x-3"><button class="action-btn" data-type="venue" data-id="${v.id}" data-action="edit"><i data-lucide="edit"></i></button><button class="action-btn" data-type="venue" data-id="${v.id}" data-action="delete"><i data-lucide="trash-2"></i></button></div></div>`);
     window.renderCategories = createRenderFn('category', 'admin-category-list', c => `<div class="list-item flex items-center justify-between p-4 rounded-lg"><div class="flex items-center"><i data-lucide="${c.icon}" class="w-6 h-6 icon-color"></i><p class="font-semibold text-header ml-4">${c.name}</p></div><div class="flex items-center space-x-3"><button class="action-btn" data-type="category" data-id="${c.id}" data-action="edit"><i data-lucide="edit"></i></button><button class="action-btn" data-type="category" data-id="${c.id}" data-action="delete"><i data-lucide="trash-2"></i></button></div></div>`);
     window.renderPromos = createRenderFn('promo', 'admin-promo-list', p => `<div class="list-item flex items-center justify-between p-4 rounded-lg"><div class="flex items-center"><img src="${p.background_url}" class="w-12 h-12 object-cover rounded-md"><p class="font-semibold text-header ml-4">${p.title}</p></div><div class="flex items-center space-x-3"><button class="action-btn" data-type="promo" data-id="${p.id}" data-action="edit"><i data-lucide="edit"></i></button><button class="action-btn" data-type="promo" data-id="${p.id}" data-action="delete"><i data-lucide="trash-2"></i></button></div></div>`);
     window.renderPartners = createRenderFn('partner', 'admin-partner-list', p => `<div class="list-item flex items-center justify-between p-4 rounded-lg"><div class="flex items-center"><img src="${p.logo_url}" class="w-12 h-12 object-contain bg-white rounded-md p-1"><p class="font-semibold text-header ml-4">${p.name}</p></div><div class="flex items-center space-x-3"><button class="action-btn" data-type="partner" data-id="${p.id}" data-action="edit"><i data-lucide="edit"></i></button><button class="action-btn" data-type="partner" data-id="${p.id}" data-action="delete"><i data-lucide="trash-2"></i></button></div></div>`);
@@ -518,14 +640,32 @@ document.querySelectorAll('.admin-nav-button').forEach(b => b.addEventListener('
                 deleteItem(type, numericId);
             } else if (action === 'edit') {
                 const { key: dbKey } = mapRenderKeys(type);
+                
+                // --- START DEBUG ---
+                console.log(`Attempting to fetch item for edit: type=${type}, id=${numericId}, endpoint=/${dbKey}/${numericId}`);
+                
                 apiFetch(`${dbKey}/${numericId}`).then(itemData => {
-                    if (itemData) setupForm(type, itemData);
-                }).catch(e => alert(`Failed to fetch item for editing: ${e.message}`));
+                    console.log('--- SERVER RESPONSE (itemData) ---');
+                    console.log(itemData);
+                    console.log('---------------------------------');
+                    
+                    if (itemData) {
+                        console.log('Data found. Calling setupForm...');
+                        setupForm(type, itemData);
+                    } else {
+                        console.error('Fetch was successful but NO data was returned. Form will be blank.');
+                    }
+                }).catch(e => {
+                    console.error('--- FETCH FAILED ---');
+                    console.error(e);
+                    alert(`Failed to fetch item for editing: ${e.message}`);
+                });
+                // --- END DEBUG ---
             }
         }
     });
 
-
+   
     const loggedInUser = sessionStorage.getItem('loggedInUser');
     if (loggedInUser) {
         initAdminPanel(JSON.parse(loggedInUser));

@@ -305,22 +305,35 @@ app.get('/api/venues/:id', async (req, res) => {
 });
 
 
+// This is the FIXED code
 app.post('/api/venues', async (req, res) => {
-    const { name, location, image_url, capacity, cost_per_slot, amenities, details, menu, gallery, event_photos, available_slots } = req.body;
-
-    const safeAmenities = safeArray(amenities);
-    const safeGallery = safeArray(gallery);
-    const safeEventPhotos = safeArray(event_photos);
-    const safeDetails = safeJSONB(details);
-    const safeMenu = safeJSONB(menu);
-    const safeAvailableSlots = safeJSONB(available_slots);
-    const safeCostPerSlot = (cost_per_slot === '' || cost_per_slot === undefined) ? null : parseFloat(cost_per_slot);
-    const safeCapacity = (capacity === '' || capacity === undefined) ? null : capacity;
+    let { name, location, image_url, capacity, cost_per_slot, amenities, details, menu, gallery, event_photos, available_slots } = req.body;
 
     try {
+        // 🧹 Clean & normalize inputs (copied from your PUT route)
+        const safeCapacity = capacity ? parseInt(capacity, 10) : null;
+        const safeCostPerSlot = cost_per_slot ? parseFloat(cost_per_slot) : null;
+        const safeAmenities = Array.isArray(amenities) ? amenities : [];
+        const safeGallery = Array.isArray(gallery) ? gallery : [];
+        const safeEventPhotos = Array.isArray(event_photos) ? event_photos : [];
+        const safeDetails = typeof details === 'object' ? details : {};
+        const safeMenu = Array.isArray(menu) ? menu : []; // Use Array for menu
+        const safeAvailableSlots = Array.isArray(available_slots) ? available_slots : [];
+
         const result = await pool.query(
-            'INSERT INTO venues (name, location, image_url, capacity, cost_per_slot, amenities, details, menu, gallery, event_photos, available_slots) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
-            [name, location, image_url, safeCapacity, safeCostPerSlot, safeAmenities, safeDetails, safeMenu, safeGallery, safeEventPhotos, safeAvailableSlots]
+            `INSERT INTO venues (
+                name, location, image_url, capacity, cost_per_slot, amenities, 
+                details, menu, gallery, event_photos, available_slots
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8::jsonb, $9, $10, $11::jsonb) RETURNING *`,
+            [
+                name, location, image_url, safeCapacity, safeCostPerSlot, 
+                safeAmenities, 
+                JSON.stringify(safeDetails),      // <-- FIX: Stringify JSON object
+                JSON.stringify(safeMenu),        // <-- FIX: Stringify JSON array
+                safeGallery, 
+                safeEventPhotos, 
+                JSON.stringify(safeAvailableSlots) // <-- FIX: Stringify JSON array
+            ]
         );
         res.status(201).json(result.rows[0]);
     } catch (err) {
@@ -330,37 +343,71 @@ app.post('/api/venues', async (req, res) => {
 });
 
 app.put('/api/venues/:id', async (req, res) => {
-    const id = req.params.id;
-    const { name, location, image_url, capacity, cost_per_slot, amenities, details, menu, gallery, event_photos, available_slots } = req.body;
+  const { id } = req.params;
+  let {
+    name,
+    location,
+    image_url,
+    capacity,
+    cost_per_slot,
+    amenities,
+    details,
+    menu,
+    gallery,
+    event_photos,
+    available_slots
+  } = req.body;
 
-    // Use helper functions for safe type conversion
-    const safeAmenities = safeArray(amenities);
-    const safeGallery = safeArray(gallery);
-    const safeEventPhotos = safeArray(event_photos);
-    const safeDetails = safeJSONB(details);
-    const safeMenu = safeJSONB(menu);
-    const safeAvailableSlots = safeJSONB(available_slots);
-    const safeCostPerSlot = (cost_per_slot === '' || cost_per_slot === undefined || cost_per_slot === null) ? null : parseFloat(cost_per_slot);
-    // Corrected safeCapacity check
-    const safeCapacity = (capacity === '' || capacity === undefined || capacity === null) ? null : parseInt(capacity, 10);
+  try {
+    // 🧹 Clean & normalize inputs
+    const safeCapacity = capacity ? parseInt(capacity, 10) : null;
+    const safeCostPerSlot = cost_per_slot ? parseFloat(cost_per_slot) : null;
+    const safeAmenities = Array.isArray(amenities) ? amenities : [];
+    const safeGallery = Array.isArray(gallery) ? gallery : [];
+    const safeEventPhotos = Array.isArray(event_photos) ? event_photos : [];
+    const safeDetails = typeof details === 'object' ? details : {};
+    const safeMenu = typeof menu === 'object' ? menu : [];
+    const safeAvailableSlots = Array.isArray(available_slots) ? available_slots : [];
 
-    try {
-        const result = await pool.query(
-            `UPDATE venues SET
-                name = $1, location = $2, image_url = $3, capacity = $4, cost_per_slot = $5,
-                amenities = $6, details = $7, menu = $8, gallery = $9, event_photos = $10, available_slots = $11
-            WHERE id = $12 RETURNING *`, // Added RETURNING * to see the updated row
-            [name, location, image_url, safeCapacity, safeCostPerSlot, safeAmenities, safeDetails, safeMenu, safeGallery, safeEventPhotos, safeAvailableSlots, id]
-        );
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Venue not found.' });
-        }
-        res.status(200).json(result.rows[0]); // Send back the updated venue data
-    } catch (err) {
-        console.error(`Venue PUT Error for ID ${id}:`, err.message);
-        res.status(500).json({ error: `Failed to update venue: ${err.message}` });
-    }
+    // 🧩 Convert all JSONB objects to JSON strings for Postgres
+    const result = await pool.query(
+      `UPDATE venues SET
+          name = $1,
+          location = $2,
+          image_url = $3,
+          capacity = $4,
+          cost_per_slot = $5,
+          amenities = $6,
+          details = $7::jsonb,
+          menu = $8::jsonb,
+          gallery = $9,
+          event_photos = $10,
+          available_slots = $11::jsonb
+       WHERE id = $12
+       RETURNING *`,
+      [
+        name,
+        location,
+        image_url,
+        safeCapacity,
+        safeCostPerSlot,
+        safeAmenities,
+        JSON.stringify(safeDetails),
+        JSON.stringify(safeMenu),
+        safeGallery,
+        safeEventPhotos,
+        JSON.stringify(safeAvailableSlots),
+        id,
+      ]
+    );
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('❌ Error updating venue:', err);
+    res.status(500).json({ error: 'Failed to update venue: ' + err.message });
+  }
 });
+
 app.delete('/api/venues/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -506,11 +553,17 @@ app.get('/api/promos', async (req, res) => {
     }
 });
 
-// GET a single promo by ID
+// GET a single promo by ID (FIXED to include button_text)
 app.get('/api/promos/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        const result = await pool.query('SELECT * FROM promos WHERE id = $1', [id]);
+        // --- FIX: Added button_text to the SELECT ---
+        const result = await pool.query(
+            'SELECT id, title, subtitle, background_url, event_id, link_type, button_link, button_text FROM promos WHERE id = $1', 
+            [id]
+        );
+        // --- END FIX ---
+        
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Promo not found' });
         }
@@ -532,41 +585,76 @@ app.delete('/api/promos/:id', async (req, res) => {
 });
 
 app.post('/api/promos', async (req, res) => {
-    const { title, subtitle, background_url, event_id, button_text } = req.body;
+    // --- FIX: Extract single URL for background_url ---
+    let { title, subtitle, background_url, event_id, button_text, link_type, button_link } = req.body;
+    const bgUrlValue = Array.isArray(background_url) && background_url.length > 0 
+                     ? background_url[0] // Take the first URL if it's an array
+                     : (typeof background_url === 'string' ? background_url : null); // Otherwise, use if it's already a string
+    // --- END FIX ---
     try {
         const result = await pool.query(
-            'INSERT INTO promos (title, subtitle, background_url, event_id, button_text) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [title, subtitle, background_url, event_id, button_text]
+            'INSERT INTO promos (title, subtitle, background_url, event_id, button_text, link_type, button_link) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+             // --- FIX: Use bgUrlValue ---
+            [title, subtitle, bgUrlValue, event_id, button_text, link_type, button_link]
         );
         res.status(201).json(result.rows[0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
-
 // Update a promo
+// REPLACE your old app.put('/api/promos/:id', ...) with this one
+// REPLACE your old app.put('/api/promos/:id', ...) with this one
+// REPLACE your app.put('/api/promos/:id', ...) with this FINAL version
 app.put('/api/promos/:id', async (req, res) => {
     const { id } = req.params;
-    const { title, subtitle, background_url, event_id, button_text } = req.body;
+    // 1. Destructure using the camelCase names sent by the frontend form
+    let {
+        title,
+        subtitle,
+        background_url, // Comes as an array
+        eventId,       // camelCase from frontend
+        buttonText,    // camelCase from frontend
+        linkType,      // camelCase from frontend
+        buttonLink     // camelCase from frontend
+    } = req.body;
+
+    // 2. Process background_url (extract single URL)
+    const bgUrlValue = Array.isArray(background_url) && background_url.length > 0
+                     ? background_url[0]
+                     : (typeof background_url === 'string' ? background_url : null);
+
+    // 3. Process eventId (convert to integer or null)
+    const eventIdValue = parseInt(eventId, 10);
+    const finalEventId = !isNaN(eventIdValue) ? eventIdValue : null;
+
+    console.log(`--- DEBUG PUT /api/promos/${id} ---`);
+    console.log("Received req.body:", req.body);
+    console.log("Processing with finalEventId:", finalEventId); // Should be number or null
+    console.log("Processing with buttonText:", buttonText);     // Should be the text
+    console.log("Processing with linkType:", linkType);         // Should be 'event' or 'url'
+    console.log("Processing with buttonLink:", buttonLink);     // Should be URL or empty
+
     try {
         const result = await pool.query(
-            'UPDATE promos SET title = $1, subtitle = $2, background_url = $3, event_id = $4, button_text = $5 WHERE id = $6 RETURNING *',
-            [title, subtitle, background_url, event_id, button_text, id]
+            // 4. Use correct snake_case column names in the SET clause
+            `UPDATE promos
+             SET title = $1, subtitle = $2, background_url = $3, event_id = $4,
+                 button_text = $5, link_type = $6, button_link = $7
+             WHERE id = $8 RETURNING *`,
+            // 5. Pass the CORRECT, processed variables in the correct order
+            [title, subtitle, bgUrlValue, finalEventId, buttonText, linkType, buttonLink, id]
         );
-        res.json(result.rows[0]);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-// -----------------------------------------------
-// 6. PARTNERS CRUD (Basic)
-// -----------------------------------------------
 
-app.get('/api/partners', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM partners ORDER BY id ASC');
-        res.json(result.rows);
+        if (result.rows.length === 0) {
+             console.log(`Promo ID ${id} not found for update.`);
+             return res.status(404).json({ error: 'Promo not found' });
+        }
+        console.log("Update successful. Sending back:", result.rows[0]);
+        res.json(result.rows[0]);
+
     } catch (err) {
+        console.error(`Error updating promo ${id}:`, err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -646,18 +734,70 @@ app.post('/api/galleries', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
-// Update a gallery item
+// Update a gallery item (WITH DEBUG LOGGING)
+// Update a gallery item (WITH TYPE CONVERSION & DEBUG LOGGING)
 app.put('/api/galleries/:id', async (req, res) => {
-    const { id } = req.params;
-    const { event_id, image_urls, caption } = req.body;
+    // 1. Explicitly convert ID from params to an integer
+    const id = parseInt(req.params.id, 10); 
+    let { event_id, image_urls, caption } = req.body;
+
+    // --- START DEBUG LOGS ---
+    console.log(`--- PUT /api/galleries/${id} ---`);
+    console.log("Received ID (as integer):", id);
+    if (isNaN(id)) {
+        console.error("!!! Invalid ID received in URL !!!");
+        return res.status(400).json({ error: "Invalid gallery ID format." });
+    }
+    // --- END DEBUG LOGS ---
+
+    // 2. Explicitly convert event_id to an integer (or null if empty/invalid)
+    event_id = parseInt(event_id, 10);
+    if (isNaN(event_id)) {
+        event_id = null; // Default to null if not a valid number
+    }
+
+    // Ensure image_urls is always an array before stringifying
+    if (!Array.isArray(image_urls)) {
+        image_urls = [];
+    }
+    const image_urls_json = JSON.stringify(image_urls);
+
+    // --- MORE DEBUG LOGS ---
+    console.log("Processing with event_id (as integer/null):", event_id);
+    console.log("Processing with image_urls (as JSON string):", image_urls_json);
+    console.log("Processing with caption:", caption);
+    // --- END DEBUG LOGS ---
+
     try {
         const result = await pool.query(
             'UPDATE galleries SET event_id = $1, image_urls = $2, caption = $3 WHERE id = $4 RETURNING *',
-            [event_id, JSON.stringify(image_urls || []), caption, id]
+            // Use the converted variables here
+            [event_id, image_urls_json, caption, id] 
         );
-        res.json(result.rows[0]);
+        
+        // --- MORE DEBUG LOGS ---
+        console.log("Database Update Result - rowCount:", result.rowCount);
+        
+        if (result.rowCount === 0) {
+            console.error(`!!! UPDATE FAILED: No gallery item found with id = ${id} !!!`);
+            return res.status(404).json({ error: `Gallery item with id ${id} not found.` });
+        } else {
+             console.log(`Successfully updated gallery item id = ${id}. Rows affected: ${result.rowCount}`);
+             console.log("Sending back updated data:", result.rows[0]);
+        }
+        console.log(`--- END PUT /api/galleries/${id} ---`);
+        // --- END DEBUG LOGS ---
+
+        res.json(result.rows[0]); 
+
     } catch (err) {
+        // --- MORE DEBUG LOGS ---
+        console.error(`!!! DATABASE ERROR on PUT /api/galleries/${id} !!!`);
+        console.error("Error Message:", err.message);
+        console.error("Query Parameters Sent:", [event_id, image_urls_json, caption, id]);
+        console.log(`--- END PUT /api/galleries/${id} (with error) ---`);
+        // --- END DEBUG LOGS ---
+        
         res.status(500).json({ error: err.message });
     }
 });
@@ -803,19 +943,21 @@ app.get('/api/public/categories', async (req, res) => {
 // Add this route to server.js in your PUBLIC API ROUTES section
 
 // GET endpoint to fetch all promos for the public page
+// GET endpoint to fetch all promos for the public page (UPDATED)
 app.get('/api/public/promos', async (req, res) => {
     try {
-        // Select relevant promo details
         const query = `
-            SELECT 
-                id, 
-                title, 
-                subtitle, 
-                background_url, 
-                event_id, 
-                button_text 
-            FROM promos 
-            ORDER BY id ASC;`;
+            SELECT
+                id,
+                title,
+                subtitle,
+                background_url,
+                event_id,    -- Needed if link_type is 'event'
+                link_type,   -- Tells frontend if it links to 'event' or 'url'
+                button_link, -- Contains the URL or the Event ID (as text)
+                button_text
+            FROM promos
+            ORDER BY id ASC;`; // Or maybe ORDER BY created_at DESC for newest first?
         const result = await pool.query(query);
         res.json(result.rows);
     } catch (err) {
@@ -829,13 +971,13 @@ app.get('/api/public/promos', async (req, res) => {
 // --- Mount the PUBLIC Authentication Routes ---
 // This passes the database pool to the auth router function
 try {
-    const authRoutesInstance = authRouter(pool); // Call the function to get the router
-    app.use('/api/public/auth', authRoutesInstance);
-    console.log("✅ Authentication routes mounted successfully at /api/public/auth"); // <-- Corrected line
-} catch(error) {
-     console.error("❌ FATAL: Could not mount authentication routes.", error);
-     process.exit(1);
-}
+     const authRoutesInstance = authRouter(pool); // Call the function to get the router
+     app.use('/api/public/auth', authRoutesInstance);
+     console.log("✅ Authentication routes mounted successfully at /api/public/auth"); // <-- Corrected line
+    } catch(error) {
+    console.error("❌ FATAL: Could not mount authentication routes.", error);
+    process.exit(1);
+    }
 // GET endpoint to fetch all events with ALL details for the public page
 app.get('/api/public/events', async (req, res) => {
     try {
@@ -904,55 +1046,80 @@ app.get('/api/public/events/:id', async (req, res) => {
 // REPLACE your existing '/api/public/venues' route with this
 
 // GET endpoint to fetch all venues with more details for the public page
+// =====================================================
+// 🌐 GET all venues for the public page
+// =====================================================
 app.get('/api/public/venues', async (req, res) => {
-    try {
-        // Select all relevant columns from the venues table
-        const query = `
-            SELECT 
-                id, 
-                name, 
-                location, 
-                image_url,    -- The primary image
-                capacity, 
-                cost_per_slot, 
-                amenities,    -- Array of text
-                details,      -- JSONB (might contain address, description etc.)
-                menu,         -- JSONB 
-                gallery,      -- Array of image URLs
-                event_photos, -- Array of image URLs
-                available_slots -- JSONB
-            FROM venues 
-            ORDER BY name ASC;
-        `;
-        
-        const result = await pool.query(query);
-        
-        // Send the list of venues back as JSON
-        res.json(result.rows);
+  try {
+    const query = `
+      SELECT 
+        id,
+        name,
+        location,
+        image_url,
+        capacity,
+        cost_per_slot,
+        amenities,
+        details,
+        menu,
+        gallery,
+        event_photos,
+        available_slots
+      FROM venues
+      ORDER BY name ASC;
+    `;
 
-    } catch (err) {
-        console.error("Error fetching public venues:", err.message);
-        // Provide a more specific error message if possible
-        res.status(500).json({ error: `Failed to load venues. Database error: ${err.message}` });
-    }
+    const result = await pool.query(query);
+    console.log(`SERVER: Sent ${result.rows.length} venues to public page.`);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error fetching public venues:", err.message);
+    res.status(500).json({ error: `Failed to load venues. Database error: ${err.message}` });
+  }
 });
 
-// GET a single venue by ID (Public)
+// =====================================================
+// 🌐 GET a single venue by ID for the public page
+// =====================================================
 app.get('/api/public/venues/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        // Query to get the specific venue
-        const query = `SELECT * FROM venues WHERE id = $1;`;
-        const result = await pool.query(query, [id]);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Venue not found' });
-        }
-        res.json(result.rows[0]); // Send the single venue object
-    } catch (err) {
-        console.error(`Error fetching public venue ${id}:`, err.message);
-        res.status(500).json({ error: `Failed to load venue details. DB error: ${err.message}` });
+  const { id } = req.params;
+  console.log(`SERVER: Received request for public venue ID: ${id}`);
+
+  try {
+    const query = `
+      SELECT 
+        id,
+        name,
+        location,
+        image_url,
+        capacity,
+        cost_per_slot,
+        amenities,
+        details,
+        menu,
+        gallery,
+        event_photos,
+        available_slots
+      FROM venues
+      WHERE id = $1;
+    `;
+
+    const result = await pool.query(query, [id]);
+
+    if (result.rows.length === 0) {
+      console.log(`SERVER: Venue ID ${id} not found.`);
+      return res.status(404).json({ error: 'Venue not found' });
     }
+
+    console.log(`SERVER: Found venue ID ${id}, sending data.`);
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(`❌ SERVER Error fetching public venue ${id}:`, err.message);
+    res.status(500).json({ error: `Failed to load venue details. DB error: ${err.message}` });
+  }
 });
+
 
 // Add this route to server.js in your PUBLIC API ROUTES section
 
@@ -977,6 +1144,50 @@ app.get('/api/public/highlights', async (req, res) => {
     }
 });
 
+// Add this route to server.js in your PUBLIC API ROUTES section
+
+// GET endpoint to fetch all partners for the public page
+app.get('/api/public/partners', async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                id, 
+                name, 
+                logo_url, 
+                website_url 
+            FROM partners 
+            ORDER BY id ASC;`;
+        const result = await pool.query(query);
+        res.json(result.rows);
+    } catch (err) {
+        console.error("Error fetching public partners:", err.message);
+        res.status(500).json({ error: "Failed to load partners." });
+    }
+});
+
+// Add this route to server.js in your PUBLIC API ROUTES section
+
+// GET endpoint to fetch all gallery items for the public page
+app.get('/api/public/galleries', async (req, res) => {
+    try {
+        // This query joins with events to get the event title
+        const query = `
+            SELECT 
+                g.id, 
+                g.image_urls, 
+                g.caption, 
+                e.title AS event_title 
+            FROM galleries g
+            LEFT JOIN events e ON g.event_id = e.id
+            ORDER BY g.id DESC;`;
+            
+        const result = await pool.query(query);
+        res.json(result.rows);
+    } catch (err) {
+        console.error("Error fetching public galleries:", err.message);
+        res.status(500).json({ error: "Failed to load gallery." });
+    }
+});
 // Add this route to server.js in your PUBLIC API ROUTES section
 
 // GET endpoint to fetch bookings (Placeholder - Needs Authentication)
