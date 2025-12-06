@@ -85,27 +85,94 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = `<select name="hour" class="time-select">${Array.from({length: 12}, (_, i) => `<option value="${i+1}" ${i+1 === displayHour ? 'selected' : ''}>${i+1}</option>`).join('')}</select><select name="minute" class="time-select">${Array.from({length: 60}, (_, i) => `<option value="${i.toString().padStart(2,'0')}" ${i === parseInt(m) ? 'selected' : ''}>${i.toString().padStart(2,'0')}</option>`).join('')}</select><select name="period" class="time-select"><option ${currentPeriod==='AM'?'selected':''}>AM</option><option ${currentPeriod==='PM'?'selected':''}>PM</option></select>`; 
     };
 const setupUploader = (dropzone, input, previewsContainer, dataStore) => {
+        
+        // 1. Renders the preview images
         const renderPreviews = () => {
-            // --- ADD LOGS HERE ---
-            console.log("DEBUG: renderPreviews called.");
-            console.log("DEBUG: dataStore.files:", dataStore.files);
-            
+            // Added type="button" to the remove button to prevent form submission
             const htmlString = (dataStore.files || []).map((src, index) =>
-                `<div class="preview-image-container"><img src="${src}" class="w-full h-24 object-cover rounded-md"><button data-index="${index}" class="remove-preview-btn p-0.5"><i data-lucide="x" class="w-4 h-4 text-red-500"></i></button></div>`
+                `<div class="preview-image-container"><img src="${src}" class="w-full h-24 object-cover rounded-md"><button type="button" data-index="${index}" class="remove-preview-btn p-0.5"><i data-lucide="x" class="w-4 h-4 text-red-500"></i></button></div>`
             ).join('');
-            
-            console.log("DEBUG: Generated HTML:", htmlString);
-            console.log("DEBUG: Target previewsContainer:", previewsContainer);
-            // --- END LOGS ---
 
-            previewsContainer.innerHTML = htmlString; // Set the HTML
+            previewsContainer.innerHTML = htmlString;
             
-            try { // Add error handling for Lucide
+            try { 
                  lucide.createIcons();
             } catch (e) {
                  console.error("Lucide error:", e);
             }
         };
+
+        // 2. Handles new files (from drop or select)
+        const handleFiles = (files) => {
+            // If it's not a multi-uploader, clear existing files
+            if (!dataStore.isMulti) {
+                dataStore.files = [];
+            }
+            
+            // Loop through all dropped/selected files
+            Array.from(files).forEach(file => {
+                // Only process image files
+                if (!file.type.startsWith('image/')){ return; }
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    // Add the base64 data URL to our dataStore
+                    dataStore.files.push(e.target.result);
+                    // Re-render the previews
+                    renderPreviews();
+                };
+                // Read the file as a Data URL (base64 string)
+                reader.readAsDataURL(file);
+            });
+        };
+
+        // --- ALL THE MISSING EVENT LISTENERS ARE ADDED BELOW ---
+
+        // 3. Drag and Drop: Add 'is-dragging' class on drag over
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault(); // This is crucial
+            dropzone.classList.add('is-dragging'); // Add visual feedback
+        });
+
+        // 4. Drag and Drop: Remove class on drag leave
+        dropzone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('is-dragging'); // Remove visual feedback
+        });
+
+        // 5. Drag and Drop: Handle the file drop
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault(); // This is crucial
+            dropzone.classList.remove('is-dragging');
+            // Get the files from the drop event
+            handleFiles(e.dataTransfer.files);
+        });
+
+        // 6. Click-to-Upload: Trigger the hidden file input on click
+        dropzone.addEventListener('click', () => {
+            input.click(); 
+        });
+
+        // 7. File Input: Handle files selected from the dialog
+        input.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        // 8. Remove Previews: Listen for clicks on remove buttons
+        previewsContainer.addEventListener('click', (e) => {
+            const removeBtn = e.target.closest('.remove-preview-btn');
+            if (removeBtn) {
+                e.preventDefault();
+                const index = parseInt(removeBtn.dataset.index, 10);
+                if (!isNaN(index)) {
+                    // Remove the file from the array
+                    dataStore.files.splice(index, 1);
+                    // Re-render previews
+                    renderPreviews();
+                }
+            }
+        });
+        
         // ... rest of setupUploader ...
         renderPreviews();
     };

@@ -306,33 +306,35 @@ app.get('/api/venues/:id', async (req, res) => {
 
 
 // This is the FIXED code
+// This is the FIXED POST code
 app.post('/api/venues', async (req, res) => {
-    let { name, location, image_url, capacity, cost_per_slot, amenities, details, menu, gallery, event_photos, available_slots } = req.body;
+    // --- FIX: Removed 'image_url' ---
+    let { name, location, capacity, cost_per_slot, amenities, details, menu, gallery, event_photos, available_slots } = req.body;
 
     try {
-        // 🧹 Clean & normalize inputs (copied from your PUT route)
         const safeCapacity = capacity ? parseInt(capacity, 10) : null;
         const safeCostPerSlot = cost_per_slot ? parseFloat(cost_per_slot) : null;
         const safeAmenities = Array.isArray(amenities) ? amenities : [];
         const safeGallery = Array.isArray(gallery) ? gallery : [];
         const safeEventPhotos = Array.isArray(event_photos) ? event_photos : [];
         const safeDetails = typeof details === 'object' ? details : {};
-        const safeMenu = Array.isArray(menu) ? menu : []; // Use Array for menu
+        const safeMenu = Array.isArray(menu) ? menu : [];
         const safeAvailableSlots = Array.isArray(available_slots) ? available_slots : [];
 
         const result = await pool.query(
+            // --- FIX: Removed 'image_url' from query ---
             `INSERT INTO venues (
-                name, location, image_url, capacity, cost_per_slot, amenities, 
+                name, location, capacity, cost_per_slot, amenities, 
                 details, menu, gallery, event_photos, available_slots
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8::jsonb, $9, $10, $11::jsonb) RETURNING *`,
+            ) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, $8, $9, $10::jsonb) RETURNING *`,
             [
-                name, location, image_url, safeCapacity, safeCostPerSlot, 
+                name, location, safeCapacity, safeCostPerSlot, 
                 safeAmenities, 
-                JSON.stringify(safeDetails),      // <-- FIX: Stringify JSON object
-                JSON.stringify(safeMenu),        // <-- FIX: Stringify JSON array
+                JSON.stringify(safeDetails),
+                JSON.stringify(safeMenu),
                 safeGallery, 
                 safeEventPhotos, 
-                JSON.stringify(safeAvailableSlots) // <-- FIX: Stringify JSON array
+                JSON.stringify(safeAvailableSlots)
             ]
         );
         res.status(201).json(result.rows[0]);
@@ -342,12 +344,13 @@ app.post('/api/venues', async (req, res) => {
     }
 });
 
+// This is the FIXED PUT code
 app.put('/api/venues/:id', async (req, res) => {
   const { id } = req.params;
+  // --- FIX: Removed 'image_url' ---
   let {
     name,
     location,
-    image_url,
     capacity,
     cost_per_slot,
     amenities,
@@ -359,36 +362,33 @@ app.put('/api/venues/:id', async (req, res) => {
   } = req.body;
 
   try {
-    // 🧹 Clean & normalize inputs
     const safeCapacity = capacity ? parseInt(capacity, 10) : null;
     const safeCostPerSlot = cost_per_slot ? parseFloat(cost_per_slot) : null;
     const safeAmenities = Array.isArray(amenities) ? amenities : [];
     const safeGallery = Array.isArray(gallery) ? gallery : [];
     const safeEventPhotos = Array.isArray(event_photos) ? event_photos : [];
     const safeDetails = typeof details === 'object' ? details : {};
-    const safeMenu = typeof menu === 'object' ? menu : [];
+    const safeMenu = Array.isArray(menu) ? menu : []; // Was 'typeof menu === 'object'
     const safeAvailableSlots = Array.isArray(available_slots) ? available_slots : [];
 
-    // 🧩 Convert all JSONB objects to JSON strings for Postgres
     const result = await pool.query(
+      // --- FIX: Removed 'image_url' from query ---
       `UPDATE venues SET
           name = $1,
           location = $2,
-          image_url = $3,
-          capacity = $4,
-          cost_per_slot = $5,
-          amenities = $6,
-          details = $7::jsonb,
-          menu = $8::jsonb,
-          gallery = $9,
-          event_photos = $10,
-          available_slots = $11::jsonb
-       WHERE id = $12
+          capacity = $3,
+          cost_per_slot = $4,
+          amenities = $5,
+          details = $6::jsonb,
+          menu = $7::jsonb,
+          gallery = $8,
+          event_photos = $9,
+          available_slots = $10::jsonb
+       WHERE id = $11
        RETURNING *`,
       [
         name,
         location,
-        image_url,
         safeCapacity,
         safeCostPerSlot,
         safeAmenities,
@@ -707,6 +707,27 @@ app.delete('/api/partners/:id', async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
+});
+// Example for an Express.js server
+
+// Add this code to your SERVER file (e.g., server.js)
+
+// PUT THIS IN YOUR server.js FILE
+
+app.get('/api/partners', async (req, res) => {
+  try {
+    // 1. Use 'pool' (or your correct database variable).
+    // 2. Use the correct SQL query 'SELECT * FROM partners'.
+    const allPartners = await pool.query('SELECT * FROM partners ORDER BY id ASC');
+    
+    // 3. Send back the 'rows' property.
+    res.json(allPartners.rows); 
+
+  } catch (err) {
+    // This will print the *real* error to your server terminal
+    console.error('Error fetching partners:', err.message); 
+    res.status(500).json({ message: 'Server error fetching partners' });
+  }
 });
 
 // GET one partner by ID (ADMIN EDIT FETCH)

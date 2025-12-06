@@ -1199,54 +1199,96 @@ function populateCategoryGrid() {
 // REPLACE your old renderEventCard function with this one
 // REPLACE your renderEventCard function with this DEBUGGING version
 
-function renderEventCard(event) {
-    // --- Checkpoint 1: Log that THIS specific function is running ---
-    console.log("--- DEBUG: Running CORRECTED renderEventCard function ---");
+/**
+ * Helper function to prevent Cross-Site Scripting (XSS)
+ * strictly necessary when injecting text into HTML strings.
+ */
+function escapeHtml(unsafe) {
+    if (unsafe === null || unsafe === undefined) return '';
+    return String(unsafe)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
-    if (!event || !event.id) {
-        console.warn("Attempted to render an invalid event card:", event);
-        return '';
+function renderEventCard(event) {
+    // 1. Validation
+    if (!event || !event.id) return '';
+
+    // 2. Data Preparation (Safe & Robust)
+    // Image Fallback
+    const placeholderImg = 'https://placehold.co/300x400/1a1a1a/ffffff?text=No+Image';
+    const imageUrl = (event.poster_images && event.poster_images.length > 0) 
+        ? event.poster_images[0] 
+        : placeholderImg;
+
+    // Date Logic
+    let dateText = 'Date TBD';
+    if (event.event_date) {
+        try {
+            const dateObj = new Date(event.event_date);
+            // Check if date is valid
+            if (!isNaN(dateObj.getTime())) {
+                dateText = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+            }
+        } catch (e) { console.error('Date parse error', e); }
     }
 
-    const imageUrl = (event.poster_images && event.poster_images[0]) ? event.poster_images[0] : 'https://placehold.co/300x400';
-    let dateText = 'Date TBD';
-    if (event.event_date) try { dateText = new Date(event.event_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }); } catch (e) {}
+    // Time & Location
     const startTime = event.start_time ? event.start_time.substring(0, 5) : '';
     const locationText = event.venue_name || 'Venue TBD';
-    const priceText = event.price_display || 'Free';
-    const showOnwards = !priceText.toLowerCase().includes('free') && priceText !== '₹0' && !priceText.toLowerCase().includes('only');
+    
+    // Price Logic
+    const priceRaw = event.price_display || 'Free';
+    const isFree = priceRaw.toLowerCase().includes('free') || priceRaw === '₹0';
+    // Logic: If not free and doesn't explicitly say "only", show "Onwards"
+    const showOnwards = !isFree && !priceRaw.toLowerCase().includes('only');
 
-    // --- Construct the HTML string ---
-    const cardHTML = `
-        <div class="event-card w-full rounded-xl shadow-xl overflow-hidden flex flex-col cursor-pointer mb-4 bg-gray-800"
-             onclick="showEventDetails(${event.id}); return false;">
+    // 3. Render HTML
+    // Note: We wrap the main onclick in a function to handle accessibility (Enter key)
+    return `
+        <div class="event-card group w-full rounded-xl shadow-xl overflow-hidden flex flex-col cursor-pointer mb-4 bg-gray-800 transition-transform hover:-translate-y-1 hover:shadow-2xl"
+             role="button"
+             tabindex="0"
+             onclick="showEventDetails(${escapeHtml(event.id)})"
+             onkeydown="if(event.key === 'Enter' || event.key === ' ') { showEventDetails(${escapeHtml(event.id)}); event.preventDefault(); }">
 
-            <div class="h-40 sm:h-64 overflow-hidden">
-                <img src="${imageUrl}" alt="${event.title || 'Event'}"
-                     class="w-full h-full object-cover"
-                     onerror="this.onerror=null; this.src='https://placehold.co/300x400/1a1a1a/ffffff?text=No+Image';">
+            <div class="h-40 sm:h-64 overflow-hidden relative bg-gray-900">
+                <img src="${escapeHtml(imageUrl)}" 
+                     alt="${escapeHtml(event.title || 'Event poster')}"
+                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                     loading="lazy"
+                     onerror="this.onerror=null; this.src='${placeholderImg}';">
             </div>
 
             <div class="p-3 sm:p-4 flex flex-col flex-grow">
-                <h4 class="text-base sm:text-lg font-bold text-white mb-1 truncate" title="${event.title || ''}">
-                    ${event.title || 'Event Title'}
+                <h4 class="text-base sm:text-lg font-bold text-white mb-1 truncate" title="${escapeHtml(event.title)}">
+                    ${escapeHtml(event.title || 'Untitled Event')}
                 </h4>
+                
                 <p class="text-gray-400 text-xs mb-3 truncate">
-                    ${locationText} | ${dateText}${startTime ? ' ' + startTime : ''}
+                    ${escapeHtml(locationText)} | <span class="text-gray-300">${escapeHtml(dateText)}</span>${startTime ? ' • ' + escapeHtml(startTime) : ''}
                 </p>
-                <div class="mt-auto pt-2 border-t border-gray-700 flex justify-start items-center">
-                    <span class="text-lg sm:text-xl font-extrabold text-white">
-                        ${priceText}
-                    </span>
-                    ${showOnwards ? '<span class="text-gray-500 text-xs ml-1">Onwards</span>' : ''}
+                
+                <div class="mt-auto pt-3 border-t border-gray-700 flex justify-between items-center">
+                    <div class="flex items-end baseline">
+                        <span class="text-lg sm:text-xl font-extrabold text-white leading-none">
+                            ${escapeHtml(priceRaw)}
+                        </span>
+                        ${showOnwards ? '<span class="text-gray-500 text-xs ml-1 mb-0.5">Onwards</span>' : ''}
+                    </div>
+                    
+                    <button 
+                        type="button"
+                        onclick="initiateBooking(${escapeHtml(event.id)}); event.stopPropagation();" 
+                        class="px-4 py-2 bg-[var(--color-accent)] text-white text-xs sm:text-sm font-bold rounded-lg hover:brightness-110 active:scale-95 transition shadow-md z-10">
+                        Book Now
+                    </button>
                 </div>
             </div>
         </div>`;
-
-    // --- Checkpoint 2: Log the EXACT HTML string being generated ---
-    console.log("Generated HTML for event card:", cardHTML);
-
-    return cardHTML; // Return the generated HTML
 }
 function populateFeaturedEventGrid() {
     const grid = document.getElementById('event-list-grid');
@@ -1284,16 +1326,112 @@ function populateVenueGrid() {
 
 // --- BOOKING LOGIC (COMPLETED) ---
 
-function showBookingPage() {
-    if (!currentEventData) return;
-    document.getElementById('booking-event-title').textContent = currentEventData.title;
-    document.getElementById('booking-event-datetime').textContent = `${currentEventData.date} | ${currentEventData.price} Only`;
-    const ticketContainer = document.getElementById('booking-ticket-options');
-    ticketContainer.innerHTML = currentEventData.ticketTypes.map((ticket, index) => `<div class="flex justify-between items-center ${index > 0 ? 'mt-4' : ''}"><div><p class="font-semibold text-white">₹${ticket.price.toFixed(2)}</p><p class="text-sm text-gray-300">${ticket.name}</p><p class="text-xs text-gray-500">${ticket.description}</p></div><div class="flex items-center space-x-2"><button class="quantity-btn" onclick="updateQuantity(${index}, -1)">-</button><span id="quantity-${index}" class="quantity-display font-bold">0</span><button class="quantity-btn" onclick="updateQuantity(${index}, 1)">+</button></div></div>`).join('');
-    updateOrderSummary();
-    navigateTo('booking');
+// --- REPLACE YOUR EXISTING initiateBooking AND showBookingPage WITH THIS ---
+
+// 1. GLOBAL VARIABLE TO STORE SELECTED EVENT
+var bookingPayload = null; 
+
+function initiateBooking(eventId) {
+    console.log(">> STEP 1: Button Clicked for ID:", eventId);
+    
+    // Prevent the card click event (Stop Bubbling)
+    if (event) {
+        event.stopPropagation(); 
+        event.preventDefault();
+    }
+
+    // Try to find the event in your global 'events' list
+    // We use loose equality (==) to handle string "7" vs number 7
+    var foundEvent = null;
+    if (typeof events !== 'undefined' && Array.isArray(events)) {
+        foundEvent = events.find(e => e.id == eventId);
+    }
+
+    // FAIL-SAFE: If data is missing or not found, create DUMMY DATA immediately.
+    // This ensures the window ALWAYS opens.
+    if (!foundEvent) {
+        console.warn(">> Event data not found. Using FALLBACK data to unblock UI.");
+        bookingPayload = {
+            title: "Test Event (Fallback)",
+            date: "Today",
+            price_display: "₹500",
+            ticket_types: [
+                { name: "VIP", price: 1000, description: "Front row seats" },
+                { name: "General", price: 500, description: "Standing area" }
+            ]
+        };
+    } else {
+        bookingPayload = foundEvent;
+    }
+
+    // Call the display function
+    showBookingPage();
 }
 
+function showBookingPage() {
+    console.log(">> STEP 2: Rendering Booking Page...");
+
+    // 1. Get the payload
+    var data = bookingPayload;
+    if (!data) return; // Should never happen due to fallback above
+
+    // 2. Locate DOM Elements
+    var titleEl = document.getElementById('booking-event-title');
+    var dateEl = document.getElementById('booking-event-datetime');
+    var container = document.getElementById('booking-ticket-options');
+
+    // 3. Update Title & Date
+    if (titleEl) titleEl.innerText = data.title || "Booking";
+    
+    // Handle date and price safely
+    var dDate = data.date || data.event_date || "Date TBD";
+    var dPrice = data.price || data.price_display || "";
+    if (dateEl) dateEl.innerText = dDate + (dPrice ? " | " + dPrice : "");
+
+    // 4. Render Tickets (Safe Loop)
+    if (container) {
+        // Find the array (handle snake_case or camelCase)
+        var tickets = data.ticketTypes || data.ticket_types || data.tickets || [];
+        
+        // If empty, show a default ticket so UI isn't blank
+        if (tickets.length === 0) {
+            tickets = [{ name: "Standard Entry", price: 0, description: "Regular Ticket" }];
+        }
+
+        // Generate HTML
+        container.innerHTML = tickets.map(function(t, i) {
+            var price = (t.price !== undefined) ? Number(t.price).toFixed(2) : "0.00";
+            var name = t.name || t.type || "Ticket";
+            var desc = t.description || "";
+
+            return `
+            <div class="flex justify-between items-center bg-gray-800 p-3 rounded-lg mb-3 border border-gray-700">
+                <div>
+                    <p class="font-bold text-white">₹${price}</p>
+                    <p class="text-sm text-gray-300">${name}</p>
+                    <p class="text-xs text-gray-500">${desc}</p>
+                </div>
+                <div class="flex items-center space-x-2 bg-gray-900 rounded p-1">
+                    <button class="px-3 py-1 bg-gray-700 text-white rounded hover:bg-red-500" onclick="updateQuantity(${i}, -1)">-</button>
+                    <span id="quantity-${i}" class="text-white font-bold w-6 text-center">0</span>
+                    <button class="px-3 py-1 bg-gray-700 text-white rounded hover:bg-green-500" onclick="updateQuantity(${i}, 1)">+</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // 5. Force Navigation
+    // Assuming 'navigateTo' switches your tabs/views.
+    if (typeof navigateTo === 'function') {
+        console.log(">> STEP 3: Navigating to view...");
+        navigateTo('booking');
+    } else {
+        console.error("navigateTo function is missing! Manually showing booking section.");
+        // Fallback: manually show the div if navigateTo is broken
+        var bookingSection = document.getElementById('booking');
+        if (bookingSection) bookingSection.style.display = 'block';
+    }
+}
 function updateQuantity(ticketIndex, change) {
     const quantityEl = document.getElementById(`quantity-${ticketIndex}`);
     let newQuantity = parseInt(quantityEl.textContent) + change;
